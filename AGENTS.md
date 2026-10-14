@@ -4,15 +4,14 @@
 Sitio web de compraventa de motos. Cualquier usuario registrado puede
 publicar motos nuevas o usadas y ver las de otros usuarios con filtros
 de búsqueda. El comprador contacta al vendedor por un botón de WhatsApp.
-Stack obligatorio: PHP (back), MySQL, HTML y CSS (front), JavaScript
-mínimo y puntual (validaciones del formulario).
+Stack obligatorio: PHP (back), MySQL, HTML y CSS (front), JavaScript.
 
 ## Estructura
 - `public/`: páginas accesibles por URL, css/, js/, uploads/
 - `src/`: config, conexión PDO, auth y models/ (no accesible por URL)
 - `views/`: partes repetidas (header, footer)
 - `sql/schema.sql`: script de la base de datos
-- `docs/`: requisitos.md, specs/, decisiones.md, changelog.md
+- `docs/`: constitution.md
 - `docker-compose.yml`: MySQL y phpMyAdmin para desarrollo
 
 ## Entorno y comandos
@@ -44,7 +43,7 @@ mínimo y puntual (validaciones del formulario).
   el archivo con un nombre generado por el servidor.
 
 ## Reglas
-- Leé `docs/requirements.md` y la spec activa en `docs/specs/` antes de tocar código.
+- Leé `docs/constitution.md` y la spec activa en `specs/` antes de tocar código.
 - Podés redactar specs nuevas como borrador, pero no modifiques una spec
   ya aprobada sin pedido explícito.
 - No agregues dependencias ni cambies el esquema de la base sin actualizar
