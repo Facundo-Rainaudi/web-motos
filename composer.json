@@ -1,0 +1,20 @@
+{
+    "name": "bike-center/bike-center",
+    "description": "Web de compra y venta de motos (proyecto educativo)",
+    "type": "project",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "pestphp/pest": "^4.0"
+    },
+    "scripts": {
+        "test": "vendor/bin/pest"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

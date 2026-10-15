@@ -1,0 +1,104 @@
+/* public/css/style.css — estilos del sitio.
+   Etapa 1: lo mínimo para que las pantallas se lean bien en celular y
+   escritorio; el acabado responsive completo llega en la etapa 5 (RNF-2). */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #1a1a1a;
+    background: #f6f7f9;
+}
+
+/* Encabezado con la marca a la izquierda y la navegación a la derecha. */
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: #10243e;
+}
+
+.brand {
+    color: #ffffff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.site-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.site-nav a {
+    color: #cfe0f5;
+    text-decoration: none;
+}
+
+.site-nav form {
+    margin: 0;
+}
+
+/* El botón de "Cerrar sesión" parece un enlace, no un botón de sistema. */
+.link-button {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: #cfe0f5;
+    font: inherit;
+    cursor: pointer;
+}
+
+.site-main {
+    max-width: 640px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+}
+
+.card {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+label {
+    display: block;
+    margin: 0.75rem 0 0.25rem;
+}
+
+input {
+    width: 100%;
+    padding: 0.5rem;
+}
+
+.button {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.6rem 1rem;
+    background: #1d6fd1;
+    color: #ffffff;
+    border: 0;
+    border-radius: 6px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.error {
+    color: #b00020;
+    margin: 0.25rem 0 0;
+}
+
+.notice {
+    color: #14682a;
+    margin: 0.25rem 0;
+}
+
+.muted {
+    color: #666666;
+}

@@ -1,5 +1,63 @@
 # Decisiones de diseño
 
+## 2026-10-15 — Etapa 2: decisiones de implementación
+- **Orden del guardado en `publish.php`**: primero los datos, después las fotos
+  y recién al final la transacción. Si los datos fallan no se toca ningún
+  archivo; si una foto resulta inválida se publica con las válidas y se avisa;
+  y si la transacción falla se borran del disco las fotos ya movidas. Así se
+  cumple "datos inválidos → no se guarda nada" sin archivos huérfanos.
+- **Flash de mensajes en la sesión**: como las acciones terminan en redirect
+  (PRG), los avisos (por ejemplo, las fotos rechazadas) se guardan con
+  `flash_set()` y se consumen una sola vez en `views/flash.php`, incluido por
+  el encabezado de cada página.
+- **Fotos repetidas por hash dentro de la publicación**: la comparación es por
+  `sha1` del contenido entre las fotos del mismo envío; en la edición
+  (etapa 4) se sumará la comparación contra las fotos ya guardadas de la moto.
+- **Nombre de archivo generado por el servidor**: 32 hexadecimales aleatorios
+  más la extensión del tipo real; el nombre que eligió el usuario nunca llega
+  al disco (seguridad) y coleccionar nombres no permite adivinar rutas.
+- **`save_photo()` acepta archivos no subidos por HTTP**: usa
+  `move_uploaded_file()` en web y un `rename()` de fallback solo para los
+  tests desde la línea de comandos; la validación con `finfo` y las reglas de
+  peso y medidas son las mismas en ambos caminos.
+- **Marca como texto libre**: la spec no la enumera, así que se validó como
+  texto obligatorio de hasta 60 caracteres, el límite de la columna `brand`.
+- **Redirección de la publicación a `/index.php` por ahora**: hasta que exista
+  la página de detalle (etapa 3), el éxito del formulario manda a la portada
+  con el aviso de flash; después se redirigirá al detalle de la moto creada.
+- **`create_bike()` propaga la excepción**: el modelo deshace la transacción y
+  relanza el error; decidir qué mostrar al usuario (y borrar los archivos del
+  disco) le corresponde a la página, no al modelo.
+
+## 2026-10-14 — Etapa 1: decisiones de implementación
+- **`src/bootstrap.php`**: las páginas de `public/` arrancan con un único
+  `require` que carga db, validation, session, csrf y auth; el orden de
+  inclusión vive en un solo lugar y las páginas quedan de dos líneas de arranque.
+- **`index.php` como placeholder**: hasta la etapa 3 la portada solo muestra
+  quién está conectado; reemplaza a la vitrina cuando exista (RF-4).
+- **Logout solo por POST con CSRF**: el botón del encabezado envía el token; un
+  GET a `/logout.php` se ignora, así nadie puede cerrar la sesión de otro con un
+  enlace.
+- **`test_db()` y `beforeEach` en `tests/Pest.php`**: los tests de integración
+  comparten la conexión a `bike_center_test` y cada test arranca con las tablas
+  truncadas, sin recrear el esquema entero por test.
+- **Encabezado sin consulta a la base**: la navegación depende solo de
+  `current_user_id()`; el nombre del usuario se mostrará cuando haya una
+  pantalla que lo necesite.
+
+## 2026-10-14 — Etapa 0: decisiones de implementación
+- **Composer sin autoload de producción**: `composer.json` no declara
+  autoload; los archivos de `src/` se incluyen con `require_once` (los hace
+  `tests/Pest.php`). Así la app corre sin `vendor/` y se respeta el principio 1.
+- **Plugin de Pest autorizado**: `composer config allow-plugins.pestphp/pest-plugin true`,
+  requisito de Composer 2.10 para instalar Pest.
+- **`db_execute_schema()` parte el SQL por ";"**: PDO no corre varios SQL de una;
+  el helper asume que no hay punto y coma dentro de comillas (el schema actual
+  no lo tiene).
+- **PHP 8.5 y la cookie de sesión**: `session_get_cookie_params()` ya no trae la
+  clave `expires` cuando no hay vencimiento; el test asegura `lifetime = 0`,
+  que expresa "la cookie muere al cerrar el navegador" (RF-2).
+
 ## 2026-10-14 — Revisión de QA de la spec 01
 - **Protección CSRF**: aunque la spec no la pide, todos los formularios con
   sesión llevan un token simple (generado en la sesión y comparado con

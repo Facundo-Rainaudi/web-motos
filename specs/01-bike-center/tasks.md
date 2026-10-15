@@ -6,31 +6,31 @@ de cada decisión.
 
 ## Etapa 0 — Entorno y base
 
-- [ ] **0.1 Composer y Pest**: `composer.json` con Pest en require-dev y script
+- [x] **0.1 Composer y Pest**: `composer.json` con Pest en require-dev y script
   `composer test`; `vendor/` en `.gitignore`.
   RF: ninguno (constitución, principio 4).
   Hecho cuando: `composer test` corre en verde sin tests todavía y `git status`
   no muestra `vendor/`.
 
-- [ ] **0.2 Esquema**: `sql/schema.sql` con `users`, `bikes` y `photos`, índices
+- [x] **0.2 Esquema**: `sql/schema.sql` con `users`, `bikes` y `photos`, índices
   y borrado en cascada; crear la base `bike_center` en Docker y cargarla.
   RF: base de RF-1, RF-3.
   Hecho cuando: el script carga sin errores y las 3 tablas existen vacías en
   `bike_center`.
 
-- [ ] **0.3 Base de tests**: `tests/Pest.php` recrea `bike_center_test` desde
+- [x] **0.3 Base de tests**: `tests/Pest.php` recrea `bike_center_test` desde
   `sql/schema.sql` antes de cada tanda.
   RF: base (constitución, principio 4).
   Hecho cuando: `composer test` deja `bike_center_test` con las 3 tablas vacías
   antes de correr y en verde.
 
-- [ ] **0.4 Conexión**: `src/db.php` con PDO (utf8mb4, excepciones) leyendo
+- [x] **0.4 Conexión**: `src/db.php` con PDO (utf8mb4, excepciones) leyendo
   `src/config.php`.
   RF: base de todos.
   Hecho cuando: un script CLI imprime "conectado" contra `bike_center` y
   `bike_center_test`, y `php -l src/db.php` pasa.
 
-- [ ] **0.5 Validaciones de cuenta**: `src/validation.php` con
+- [x] **0.5 Validaciones de cuenta**: `src/validation.php` con
   `normalize_email`, `validate_password` (≥ 8), `validate_full_name` (≥ 3) y
   `validate_phone` (10 dígitos, ignora espacios y guiones, devuelve
   `+54 11` + dígitos) + `tests/Unit/ValidationTest.php`.
@@ -38,14 +38,14 @@ de cada decisión.
   Hecho cuando: el test cubre cada caso válido e inválido del teléfono (letras,
   "+", 9 y 11 dígitos) y pasa en verde.
 
-- [ ] **0.6 Validaciones de moto**: `validate_price` (coma o punto, hasta 2
+- [x] **0.6 Validaciones de moto**: `validate_price` (coma o punto, hasta 2
   decimales, > 0), `validate_title` (≤ 80), `validate_description` (≤ 2000),
   `validate_currency`, `validate_condition` + tests.
   RF: RF-3.
   Hecho cuando: `composer test` cubre precio negativo, cero, 3 decimales y
   textos en el límite, y queda en verde.
 
-- [ ] **0.7 Sesión y CSRF**: `src/session.php` (cookie httponly, sin `expires`)
+- [x] **0.7 Sesión y CSRF**: `src/session.php` (cookie httponly, sin `expires`)
   y `src/csrf.php` (`csrf_token`/`csrf_check` con `hash_equals`) + su test.
   RF: RF-2.
   Hecho cuando: el test confirma que un token correcto pasa y uno alterado no,
@@ -53,21 +53,21 @@ de cada decisión.
 
 ## Etapa 1 — Registro y sesión (H2, H3)
 
-- [ ] **1.1 Registro con persistencia**: `src/auth.php` con `register_user`
+- [x] **1.1 Registro con persistencia**: `src/auth.php` con `register_user`
   (valida, email en minúsculas, `password_hash`, teléfono +54 11) +
   `tests/Integration/UserTest.php`.
   RF: RF-1.
   Hecho cuando: el test crea una cuenta, rechaza el correo duplicado sin
   importar mayúsculas y verifica el teléfono guardado con `+54 11`.
 
-- [ ] **1.2 Pantalla de registro**: `public/register.php` + `views/header`,
+- [x] **1.2 Pantalla de registro**: `public/register.php` + `views/header`,
   `footer`, `flash` con PRG y errores en español.
   RF: RF-1.
   Hecho cuando: a mano, registro válido entra logueado y el inválido (correo
   existente, contraseña corta, teléfono de 9 dígitos) muestra el motivo sin
   borrar lo tipeado.
 
-- [ ] **1.3 Login y logout**: `login_user` en `auth.php`,
+- [x] **1.3 Login y logout**: `login_user` en `auth.php`,
   `public/login.php`, `public/logout.php` + test de login.
   RF: RF-2.
   Hecho cuando: el mensaje de login fallido no dice cuál dato está mal, y
@@ -75,21 +75,21 @@ de cada decisión.
 
 ## Etapa 2 — Publicar (H4)
 
-- [ ] **2.1 Almacén de fotos**: `src/storage.php` (tipo real con `finfo`,
+- [x] **2.1 Almacén de fotos**: `src/storage.php` (tipo real con `finfo`,
   ≤ 2 MB, ≥ 200×200, nombre generado, `sha1` para repetidas) +
   `tests/Unit/StorageTest.php` con fixtures.
   RF: RF-3, RNF-5.
   Hecho cuando: el test rechaza un PDF renombrado a .jpg, una de 3 MB, una de
   100×100 y detecta la repetida por hash.
 
-- [ ] **2.2 Modelos de moto y fotos**: `bike_model.php` (`create_bike`) y
+- [x] **2.2 Modelos de moto y fotos**: `bike_model.php` (`create_bike`) y
   `photo_model.php` en transacción + `tests/Integration/BikeTest.php` y
   `PhotoTest.php` mínimos.
   RF: RF-3.
   Hecho cuando: el test crea una moto con 4 fotos, guarda la posición de cada
   foto y no queda registro huérfano si falla a mitad de camino.
 
-- [ ] **2.3 Formulario de publicación**: `public/publish.php` +
+- [x] **2.3 Formulario de publicación**: `public/publish.php` +
   `views/bike_form.php`: datos + hasta 4 fotos, CSRF, PRG.
   RF: RF-3.
   Hecho cuando: se recorre a mano el criterio de "datos inválidos → no se guarda
