@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($errors === []) {
                     try {
-                        create_bike(db_connect(), (int) current_user_id(), [
+                        $bikeId = create_bike(db_connect(), (int) current_user_id(), [
                             'title' => $title['value'],
                             'brand' => $brand['value'],
                             'condition' => $condition['value'],
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ], array_map(static fn (string $filename): array => ['filename' => $filename], $savedFiles));
 
                         // Publicada. Si hubo fotos rechazadas, el motivo viaja
-                        // por flash y se ve en la portada tras el redirect.
+                        // por flash y se ve en el detalle tras el redirect.
                         if ($batch['errors'] !== []) {
                             flash_set(
                                 'notice',
@@ -105,9 +105,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             flash_set('notice', '¡Publicación creada! Ya aparece en la vitrina.');
                         }
 
-                        // Mientras no exista la vitrina (etapa 3), se vuelve a
-                        // la portada desde donde se confirma la sesión.
-                        header('Location: /index.php');
+                        // Tras publicar se muestra el detalle de la moto creada
+                        // (decisión de diseño registrada en docs/decisions.md).
+                        header('Location: /bike.php?id=' . $bikeId);
                         exit;
                     } catch (Throwable $e) {
                         // Se deshace lo del disco: la transacción ya deshizo la base.

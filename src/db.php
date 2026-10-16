@@ -29,7 +29,11 @@ function db_config(): array
 function db_connect(?string $database = null): PDO
 {
     $config = db_config();
-    $dbname = $database ?? $config['dbname'];
+
+    // Los tests pueden apuntar las páginas y el endpoint a su propia base con
+    // la variable BIKE_CENTER_DB (por ejemplo: bike_center_test); si no está
+    // definida, se usa la base de configuración.
+    $dbname = $database ?? (getenv('BIKE_CENTER_DB') ?: null) ?? $config['dbname'];
 
     $dsn = sprintf(
         'mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4',

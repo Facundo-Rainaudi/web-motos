@@ -1,28 +1,47 @@
 <?php
-// public/index.php — portada del sitio.
-// Hoy es un placeholder que confirma quién está conectado; en la etapa 3 se
-// convierte en la vitrina pública de motos (RF-4).
+// public/index.php — vitrina pública (RF-4, H1): primeras 20 motos ordenadas
+// por creación (más reciente primero) y el resto entra con scroll infinito
+// desde js/feed.js contra api/bikes.php (RNF-3). Cualquiera, con o sin
+// sesión, puede verla.
 
 declare(strict_types=1);
 
 require __DIR__ . '/../src/bootstrap.php';
 session_start_secure();
 
-$user = current_user_id() !== null ? find_user_by_id(db_connect(), current_user_id()) : null;
+$bikes = list_bikes_feed(db_connect(), 20, null);
+$lastId = $bikes === [] ? null : (int) $bikes[count($bikes) - 1]['id'];
 
-$pageTitle = 'Bike Center';
+$pageTitle = 'Bike Center — Motos en venta';
 require __DIR__ . '/../views/header.php';
 ?>
-<section class="card">
-    <h1>Bike Center</h1>
+<section>
+    <h1>Motos en venta</h1>
 
-    <?php if ($user !== null): ?>
-        <p>Hola <strong><?= htmlspecialchars($user['full_name']) ?></strong>, tenés la sesión iniciada.</p>
+    <?php if ($bikes === []): ?>
+        <!-- Estado vacío: invita a publicar la primera (RF-4). -->
+        <p class="empty-state">
+            Todavía no hay motos publicadas.
+            <?php if (current_user_id() !== null): ?>
+                <a href="/publish.php">Publicá la primera</a>.
+            <?php else: ?>
+                <a href="/register.php">Creá tu cuenta</a> y publicá la primera.
+            <?php endif; ?>
+        </p>
     <?php else: ?>
-        <p>Todavía no estás logueado. Podés <a href="/register.php">crear una cuenta</a>
-            o <a href="/login.php">iniciar sesión</a>.</p>
-    <?php endif; ?>
+        <div id="bike-list"
+             data-last-id="<?= $lastId ?? '' ?>"
+             data-has-more="<?= count($bikes) === 20 ? '1' : '0' ?>">
+            <?php foreach ($bikes as $bike): ?>
+                <?php require __DIR__ . '/../views/bike_card.php'; ?>
+            <?php endforeach; ?>
+        </div>
 
-    <p class="muted">La vitrina de motos llega en la etapa 3 de la spec 01.</p>
+        <!-- El centinela marca el final de la lista: cuando se ve en pantalla,
+             feed.js pide la siguiente tanda al endpoint JSON. -->
+        <div id="feed-sentinel" aria-hidden="true"></div>
+        <p id="feed-status" class="muted" role="status"></p>
+        <script src="/js/feed.js" defer></script>
+    <?php endif; ?>
 </section>
 <?php require __DIR__ . '/../views/footer.php';

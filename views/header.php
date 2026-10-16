@@ -18,6 +18,7 @@
     <a class="brand" href="/index.php">Bike Center</a>
     <nav class="site-nav">
         <?php if (current_user_id() !== null): ?>
+            <a href="/publish.php">Publicar</a>
             <form method="post" action="/logout.php">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token()) ?>">
                 <button type="submit" class="link-button">Cerrar sesión</button>

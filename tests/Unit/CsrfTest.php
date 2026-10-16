@@ -15,7 +15,10 @@ it('acepta el token que genera la propia sesión', function () {
 it('rechaza un token alterado', function () {
     session_start_secure();
     $token = csrf_token();
-    $tampered = 'a' . substr($token, 1);
+    // El primer carácter se reemplaza por uno DISTINTO al original: como el
+    // token es hexadecimal, un cambio fijo a 'a' coincidiría con el token
+    // 1 de cada 16 veces y el test fallaría de manera intermitente.
+    $tampered = ($token[0] === 'a' ? 'b' : 'a') . substr($token, 1);
 
     expect(csrf_check($tampered))->toBeFalse();
 });

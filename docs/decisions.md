@@ -1,5 +1,44 @@
 # Decisiones de diseño
 
+## 2026-10-15 — Etapa 3: decisiones de implementación
+- **Paginado por id sobre orden por fecha**: el feed ordena `created_at DESC,
+  id DESC` (como pide la spec) pero el cursor compara solo `id < último`; como
+  los ids crecen junto con la fecha de creación, es equivalente y más simple.
+  El test de 3 tandas lo prueba, y la semilla respeta esa correlación.
+- **`db_connect()` con variable de entorno `BIKE_CENTER_DB`**: las páginas y el
+  endpoint usan la conexión de la app; los tests las prueban apuntando esa
+  variable a `bike_center_test` solo durante la llamada, sin tocar config.php.
+- **Foto principal en la tarjeta de la vitrina** (pedido explícito del usuario
+  tras completar la etapa; actualiza RF-4, H1 y tarea 3.3): la foto es la de
+  posición 0 de la moto, decorativa (`alt=""`, el título identifica), con
+  `loading="lazy"` para el H10 y `object-fit: cover` en 4:3 para no deformar.
+  Las motos sin fotos (solo posible a mano) muestran la tarjeta sin imagen:
+  misma guarda en PHP (`views/bike_card.php`) y en `feed.js`.
+- **Carrusel de fotos en el detalle** (pedido del usuario; actualiza RF-5 y la
+  tarea 3.5): una foto a la vez con botones ◀ ▶ y contador, navegación cíclica
+  (de la última vuelve a la primera). Degradación sin JS: el servidor pinta
+  todas las fotos visibles y `gallery.js` recién entonces oculta las inactivas
+  y habilita los controles con la clase `.js`; con una sola foto no hay
+  botones ni script. Teclado no incluido a propósito (alcance: botones).
+- **`src/format.php`**: `format_price()` centraliza el formato de precio
+  (punto de miles, dos decimales solo si hay fracción) y `feed.js` repite las
+  mismas reglas para que las tarjetas por scroll coincidan con las de PHP.
+- **Tarjetas por scroll con `textContent`**: `feed.js` arma las tarjetas con
+  `createElement`/`textContent`, nunca `innerHTML`, para que un título con
+  etiquetas HTML se muestre como texto literal también en el infinito.
+- **Detalle sin sesión redirige a `/login.php`**, igual que publicar: el login
+  ofrece crear cuenta, que es lo que pide el RF-5 ("registrarse o iniciar
+  sesión") sin filtrar ningún dato.
+- **`SET NAMES utf8mb4` al inicio de `sql/seed.sql`**: el cliente `mysql` de
+  Docker se conecta en latin1 por defecto y los acentos se doble-codificaban
+  al cargar; declararlo en el archivo hace la carga independiente del cliente.
+- **La publicación redirige al detalle** de la moto creada (decisión quedada
+  de la etapa 2, posible recién ahora que existe `bike.php`); el aviso de
+  fotos rechazadas viaja en flash y se ve ahí.
+- **Semilla con fechas crecientes por id**: `sql/seed.sql` asigna `created_at`
+  horario consecutivo en el mismo orden de los ids para que el orden de la
+  vitrina sea determinista y coincida con la lógica del cursor.
+
 ## 2026-10-15 — Etapa 2: decisiones de implementación
 - **Orden del guardado en `publish.php`**: primero los datos, después las fotos
   y recién al final la transacción. Si los datos fallan no se toca ningún

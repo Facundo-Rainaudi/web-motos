@@ -102,3 +102,169 @@ input {
 .muted {
     color: #666666;
 }
+
+/* Etapa 3: vitrina (tarjetas y etiquetas), estado vacío y detalle. */
+
+.bike-card {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.bike-card h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+}
+
+.bike-card h2 a {
+    color: #10243e;
+    text-decoration: none;
+}
+
+/* Miniatura de la tarjeta: llena el ancho, recorta sin deformar (cover)
+   y mantiene proporción 4:3 en cualquier pantalla. */
+.bike-photo {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    background: #e9edf2; /* respiro de color mientras la foto carga */
+}
+
+.bike-brand {
+    color: #666666;
+    margin: 0 0 0.5rem;
+}
+
+.bike-price {
+    margin: 0;
+    font-weight: 700;
+}
+
+.bike-price-big {
+    font-size: 1.4rem;
+    margin: 0.25rem 0;
+}
+
+/* Etiqueta de estado: "Disponible" en verde, "Vendida" en rojo. */
+.badge {
+    display: inline-block;
+    margin: 0.5rem 0 0;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-available {
+    background: #e2f4e8;
+    color: #14682a;
+}
+
+.badge-sold {
+    background: #f9e4e8;
+    color: #b00020;
+}
+
+.empty-state {
+    background: #ffffff;
+    border: 1px dashed #b9c4d0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+/* Altura mínima para que el centinela del scroll infinito sea detectado. */
+#feed-sentinel {
+    height: 1px;
+}
+
+/* Carrusel de fotos del detalle (RF-5): una foto a la vez con botones ◀ ▶.
+   Sin la clase .js (página sin JavaScript) todo queda visible y los botones
+   ocultos, así que ninguna foto se pierde. */
+.gallery {
+    position: relative;
+    margin: 1rem 0;
+}
+
+.gallery-photo {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    background: #e9edf2;
+}
+
+.gallery.js .gallery-photo {
+    display: none;
+}
+
+.gallery.js .gallery-photo.is-active {
+    display: block;
+}
+
+.gallery-nav {
+    display: none;
+}
+
+.gallery.js .gallery-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(16, 36, 62, 0.65);
+    color: #ffffff;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.gallery.js .gallery-nav:hover {
+    background: rgba(16, 36, 62, 0.9);
+}
+
+.gallery-prev {
+    left: 0.5rem;
+}
+
+.gallery-next {
+    right: 0.5rem;
+}
+
+.gallery-status {
+    display: none;
+    margin: 0.5rem 0 0;
+    text-align: center;
+}
+
+.gallery.js .gallery-status {
+    display: block;
+}
+
+.bike-description {
+    white-space: pre-wrap; /* respeta los saltos de línea de la descripción */
+}
+
+.bike-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 1rem;
+    margin: 1rem 0;
+}
+
+.bike-meta dt {
+    font-weight: 600;
+}
+
+.bike-meta dd {
+    margin: 0;
+}

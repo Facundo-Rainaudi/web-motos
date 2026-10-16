@@ -23,8 +23,8 @@ posterior.
 No existe el rol de administrador ni moderación en esta funcionalidad.
 
 ## 3. Historias de usuario
-- H1: Como visitante quiero ver el listado de motos con título, marca y precio
-  para decidir si me interesa alguna y si vale la pena registrarme.
+- H1: Como visitante quiero ver el listado de motos con foto, título, marca y
+  precio para decidir si me interesa alguna y si vale la pena registrarme.
 - H2: Como visitante quiero crear una cuenta con nombre completo, correo,
   contraseña y teléfono para poder publicar y ver el detalle de las motos.
 - H3: Como usuario registrado quiero iniciar y cerrar sesión para trabajar con
@@ -107,10 +107,10 @@ No existe el rol de administrador ni moderación en esta funcionalidad.
   editarla, borrarla o venderla.
 
 ### RF-4 Listado público (vitrina)
-- DADO cualquier visitante, EL SISTEMA DEBE mostrar el listado con título,
-  marca, precio (con su moneda) y estado de las motos publicadas, ordenado por
-  fecha de creación, más reciente primero; editar una publicación no altera su
-  posición.
+- DADO cualquier visitante, EL SISTEMA DEBE mostrar el listado con la foto
+  principal, título, marca, precio (con su moneda) y estado de las motos
+  publicadas, ordenado por fecha de creación, más reciente primero; editar una
+  publicación no altera su posición.
 - DADA una moto marcada como vendida, ENTONCES el listado la sigue mostrando,
   con la etiqueta "vendida" visible en lugar de la de disponible.
 - DADA una moto borrada por su dueño, ENTONCES desaparece del listado y su
@@ -120,8 +120,9 @@ No existe el rol de administrador ni moderación en esta funcionalidad.
 
 ### RF-5 Detalle de la moto
 - DADA una sesión iniciada, CUANDO abre el detalle de una moto, ENTONCES ve
-  título, marca, estado, precio con su moneda, descripción, todas sus fotos, el
-  nombre del vendedor y la fecha de publicación.
+  título, marca, estado, precio con su moneda, descripción, todas sus fotos
+  (una a la vez, con botones para pasar de una a otra), el nombre del vendedor
+  y la fecha de publicación.
 - DADO un visitante sin sesión, SI intenta abrir el detalle de una moto,
   ENTONCES el sistema le pide registrarse o iniciar sesión sin filtrar ningún
   dato completo.

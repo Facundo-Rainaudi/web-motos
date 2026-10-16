@@ -97,39 +97,41 @@ de cada decisión.
 
 ## Etapa 3 — Vitrina y detalle (H1, H5)
 
-- [ ] **3.1 Feed**: `bike_model.php` con `list_bikes_feed` (orden
+- [x] **3.1 Feed**: `bike_model.php` con `list_bikes_feed` (orden
   `created_at DESC, id DESC`, paginado por clave) +
   `tests/Integration/FeedTest.php`.
   RF: RF-4, RNF-3.
   Hecho cuando: el test pide 3 tandas de 20 sin repetir ni perder motos aun
   publicando nuevas en el medio, y editar una moto no cambia su posición.
 
-- [ ] **3.2 Semilla**: `sql/seed.sql` con 4 usuarios y 27 motos (una vendida) y
+- [x] **3.2 Semilla**: `sql/seed.sql` con 4 usuarios y 27 motos (una vendida) y
   fotos copiadas de `tests/fixtures/` a `public/uploads/`; cargar en
   `bike_center`.
   RF: soporte de RF-4.
   Hecho cuando: contar en la base da 4 usuarios y 27 motos, y sus fotos abren
   en el navegador.
 
-- [ ] **3.3 Pantalla vitrina**: `public/index.php` + `views/bike_card.php` con
-  título, marca, precio con moneda, etiqueta de estado y estado vacío.
+- [x] **3.3 Pantalla vitrina**: `public/index.php` + `views/bike_card.php` con
+  foto principal, título, marca, precio con moneda, etiqueta de estado y
+  estado vacío.
   RF: RF-4.
   Hecho cuando: con la semilla cargada se ven las 20 primeras ordenadas por
-  fecha y la moto vendida muestra su etiqueta; sin motos, aparece el mensaje
-  para publicar la primera.
+  fecha con su foto, la moto vendida muestra su etiqueta; sin motos, aparece
+  el mensaje para publicar la primera.
 
-- [ ] **3.4 Scroll infinito**: `public/api/bikes.php` (JSON con `has_more`) +
+- [x] **3.4 Scroll infinito**: `public/api/bikes.php` (JSON con `has_more`) +
   `js/feed.js`.
   RF: RNF-3, H10.
   Hecho cuando: bajando el listado aparecen las 27 motos sin repetir y sin
   recargar la página.
 
-- [ ] **3.5 Detalle**: `public/bike.php?id=` con datos completos solo para
-  logueados, nombre del vendedor, fecha, HTML literal, "no disponible" para
-  borradas.
+- [x] **3.5 Detalle**: `public/bike.php?id=` con datos completos solo para
+  logueados, nombre del vendedor, fecha, HTML literal, fotos en carrusel con
+  botones ◀ ▶ (pedido del usuario) y "no disponible" para borradas.
   RF: RF-5.
   Hecho cuando: un visitante no logueado no ve ningún dato completo, el
-  logueado ve todo, y una moto borrada muestra "no disponible".
+  logueado ve todo con el carrusel funcionando, y una moto borrada muestra
+  "no disponible".
 
 ## Etapa 4 — Gestión del dueño (H6–H9)
 
