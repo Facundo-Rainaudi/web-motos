@@ -235,9 +235,37 @@ de cada decisión.
 
 ## Etapa 6 — Cierre
 
-- [ ] **6.1 Recorrido final**: recorrer los criterios de aceptación de RF-1 a
+- [x] **6.1 Recorrido final**: recorrer los criterios de aceptación de RF-1 a
   RF-10 sobre la app con la semilla, `php -l` en todo PHP del proyecto y
   registro final en `docs/changelog.md` y `docs/decisions.md`.
   RF: todos.
   Hecho cuando: cada criterio de la spec está en verde y no queda ningún
   archivo sin lintear.
+  Verificado (2026-10-17): los 38 archivos PHP del proyecto pasan `php -l`
+  (0 errores) y la suite cierra en verde con **91 tests, 219 aserciones**.
+  Recorrido por curl sobre la app con la semilla (RF-1 a RF-10, cada punto
+  de la sección 4): registro válido con teléfono `+54 11` + 10 dígitos y
+  sesión iniciada; duplicado con mayúsculas y los 5 inválidos (nombre, clave
+  corta, correo, teléfono de 9 y con "+") rechazados con su aviso; login
+  con mensaje genérico; logout, acción sin sesión y cookie de sesión sin
+  expiración; publicación válida primera en la vitrina y datos inválidos
+  sin guardar nada; fotos parciales (repetida, no-imagen, 3 MB y 100×100
+  rechazadas con motivo por flash) y cupo de 4; vitrina con 20 tarjetas en
+  orden `created_at DESC, id DESC` y vendida con su etiqueta; vitrina vacía
+  (contra `bike_center_test`); detalle completo para logueado, 302 a login
+  para visitante y "no disponible" para borrada; edición sin mover la moto
+  ni tocar `created_at`/`status`, mismas validaciones, fotos entre 1 y 4 con
+  reemplazo de la única y venta que no bloquea editar; borrar propio borra
+  filas (cascada) y archivos y saca la moto de la vitrina; vendida
+  reversible; "Mis publicaciones" solo con las propias y estado vacío; y
+  toda acción directa sobre moto ajena con CSRF válido sin ningún cambio
+  (RF-10). RNF-4 verificado en pantalla (teléfono y contraseña nunca
+  visibles) y RNF-6 sin conversión de moneda.
+  Incidentes de datos detectados y corregidos durante el recorrido: la moto
+  1 había quedado con la descripción doble-codificada por un UPDATE hecho
+  sin `--default-character-set=utf8mb4` (restaurada con el charset correcto)
+  y faltaba `seed_01.jpg` en `public/uploads/` (regenerado desde
+  `tests/fixtures/valid_200x200.jpg`; la moto 1 volvió a su estado exacto
+  de semilla). La única foto sin archivo es la de la "Ninja 500se" del
+  usuario, perdida por un borrado mío indebido durante el chequeo: su
+  dueño debe reemplazarla desde la edición (ver `docs/changelog.md`).

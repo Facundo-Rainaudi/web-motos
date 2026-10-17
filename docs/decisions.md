@@ -59,6 +59,29 @@
   termina en el login. La vitrina (pública) no lo lleva: su caché es
   inofensiva y ayuda al rendimiento (RNF-3).
 
+## 2026-10-17 — Cierre (etapa 6): interpretación y lecciones
+- **"Vender" es un alternador, y la spec lo admite** (RF-8 + casos límite):
+  el criterio EARS dice que volver a marcar vendida una moto ya vendida
+  "no produce ningún cambio"; en la práctica ese caso es inalcanzable por
+  interfaz —el botón de una vendida dice "Volver a disponible"— y por POST
+  directo el alternador implementa "queda el último cambio guardado" y
+  "marcar vendida dos veces deja un solo estado" (ambos de la sección de
+  casos límite). Se documenta la interpretación en vez de cambiar un
+  comportamiento ya probado y aprobado por el usuario.
+- **SQL manual con acentos: `--default-character-set=utf8mb4` siempre**
+  (lección del recorrido final): un `UPDATE` hecho con el cliente mysql
+  sin el charset doble-codificó la descripción de la moto 1
+  (`kilómetro` → `kilÃ³metro` en la página). El sitio estaba sano: la
+  corrupción fue del dato, no del código. La conexión de la aplicación
+  (DSN utf8mb4) nunca tuvo el problema.
+- **Los nombres de las fotos son aleatorios** (`bin2hex(random_bytes(16))`),
+  así que un archivo borrado del disco no se puede regenerar: solo se
+  puede reemplazar desde la edición. Lección operativa: borrar en
+  `public/uploads/` solo lo que la propia aplicación borra, y nunca
+  "limpiar" el directorio a mano. El chequeo de huérfanos del recorrido
+  final (filas sin moto + filas sin archivo) es la forma rápida de
+  detectar discrepancias.
+
 ## 2026-10-16 — Etapa 4: decisiones de implementación
 - **La verificación de dueño vive en el modelo, no en la pantalla** (RF-10):
   `delete_bike_as_owner()` y `toggle_bike_status_as_owner()` reciben el id del

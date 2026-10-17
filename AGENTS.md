@@ -50,6 +50,7 @@ Stack obligatorio: PHP (back), MySQL, HTML y CSS (front), JavaScript.
   antes la spec y `sql/schema.sql`.
 - Trabajá una tarea por vez, chica y verificable.
 - Y comenta todo el codigo que escribas, explicando como funciona y para que.
+- Para cualquier cambio visual, cargá la skill web-design
 
 ## Al terminar cualquier tarea
 - Corré `php -l` en los archivos que tocaste.

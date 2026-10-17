@@ -1,6 +1,39 @@
 # Changelog
 
 ## 2026-10-17
+- **Etapa 6 — Cierre: recorrido final de RF-1 a RF-10, todo en verde**.
+  `php -l` sobre los **38 archivos PHP** del proyecto sin errores y suite en
+  verde (**91 tests, 219 aserciones**). Recorrido por curl punto por punto
+  sobre la app con la semilla: registro (teléfono `+54 11` + 10 dígitos,
+  duplicado en otro formato de mayúsculas y los 5 inválidos con su aviso),
+  sesión (mensaje genérico de login, logout, acción sin sesión, cookie sin
+  expiración y dos dispositivos sin pisarse), publicar (datos inválidos sin
+  guardar nada; fotos repetida/no-imagen/3 MB/100×100 rechazadas con motivo
+  por flash y cupo de 4), vitrina (20 tarjetas en orden
+  `created_at DESC, id DESC`, etiqueta vendida, vacía en la base de tests y
+  moneda sin convertir), detalle (completo con sesión, 302 sin sesión,
+  "no disponible" borrada), editar (sin mover la moto, mismas validaciones,
+  fotos entre 1 y 4, reemplazo de la única, vendida editable), borrar
+  (cascada de filas y archivos), vender (reversible), mis publicaciones
+  (solo propias y estado vacío) y la regla de propiedad (toda acción directa
+  sobre moto ajena con CSRF válido no produce ningún cambio). RNF-4 en
+  pantalla: ni teléfono ni contraseña aparecen en ninguna vista. Detalle del
+  recorrido en `specs/01-bike-center/tasks.md` (6.1).
+  - **Incidente 1 (datos, corregido)**: la descripción de la moto 1 quedó
+    doble-codificada por un `UPDATE` de restauración hecho con el cliente
+    mysql sin `--default-character-set=utf8mb4`; el sitio estaba sano (las
+    motos intactas mostraban sus acentos bien). Restaurado con el charset
+    correcto.
+  - **Incidente 2 (datos, corregido)**: faltaba `public/uploads/seed_01.jpg`
+    (12 filas de la semilla apuntaban a él); regenerado desde
+    `tests/fixtures/valid_200x200.jpg` y la moto 1 devuelta a su estado
+    exacto de semilla (seed_01 + seed_02).
+  - **Incidente 3 (dato del usuario, NO recuperable)**: durante un chequeo
+    borré por error dos archivos referenciados; uno era mi foto de prueba en
+    la moto 1 (ya restaurada a la semilla) y el otro era **la foto de la
+    "Ninja 500se" del usuario**, cuyo contenido no se puede regenerar (los
+    nombres de archivo son aleatorios, no hay snapshots ni está en git).
+    Pedirle que la reemplace con un click en la foto desde su edición.
 - **Etapa 5 — No funcionales (RNF-2, RNF-3, RF-2)**: responsive y checklist
   manual.
   - *Responsive (solo CSS)*: el sitio ya era fluido (grillas con `1fr`,
