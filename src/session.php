@@ -79,6 +79,13 @@ function logout_user(): void
  */
 function require_login_or_redirect(string $destination = '/login.php'): void
 {
+    // Pantallas privadas sin caché del navegador: sin este encabezado, el
+    // botón "atrás" después de cerrar sesión puede restaurar la pantalla
+    // desde la caché y mostrar datos de una sesión que ya no existe. Con
+    // no-store el navegador la vuelve a pedir al servidor y, sin sesión,
+    // cae en los guards de abajo y termina en el login (etapa 5, RNF-3).
+    header('Cache-Control: no-store');
+
     $userId = current_user_id();
 
     if ($userId === null) {

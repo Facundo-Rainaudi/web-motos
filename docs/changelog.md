@@ -1,6 +1,27 @@
 # Changelog
 
 ## 2026-10-17
+- **Etapa 5 — No funcionales (RNF-2, RNF-3, RF-2)**: responsive y checklist
+  manual.
+  - *Responsive (solo CSS)*: el sitio ya era fluido (grillas con `1fr`,
+    imágenes al 100% con `object-fit`, main con padding); la etapa 5 cerró
+    los huecos de celular: los campos heredan la tipografía del sitio (evita
+    el zoom automático de iOS al enfocar), la navegación del encabezado se
+    envuelve a una segunda fila hasta 480px, el ✕ de quitar foto crece a
+    2.5rem para el dedo, los textos largos sin espacios (títulos, URLs en la
+    descripción) se parten con `overflow-wrap` en vez de desbordar la
+    pantalla, y el pie por fin tiene estilo propio.
+  - *Checklist manual*: la segunda tanda del scroll infinito mide 0.003 s
+    contra `/api/bikes.php` (límite: 2 s); las pantallas privadas mandan
+    `Cache-Control: no-store` —nuevo header en
+    `require_login_or_redirect()`— para que el botón "atrás" después de
+    cerrar sesión vuelva a pedirlas al servidor y caiga en el guard de
+    login; la cookie de sesión no tiene Expires ni Max-Age, así que cerrar
+    la aplicación del navegador la corta; y dos sesiones independientes no
+    se pisan (logout en un dispositivo deja al otro en pie, verificado con
+    dos cookies jars). Los puntos de "atrás" y "cerrar la app" se
+    completan a mano en el navegador del usuario.
+  - Suite en verde: **91 tests, 219 aserciones**.
 - **Recuadros de fotos en publicar y editar** (pedido del usuario tras probar
   la etapa 4; tarea 4.6): donde antes había una sola línea de input con el
   atributo `multiple` (que Chrome escondía y Safari no soporta), ahora hay

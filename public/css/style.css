@@ -1,6 +1,6 @@
 /* public/css/style.css — estilos del sitio.
-   Etapa 1: lo mínimo para que las pantallas se lean bien en celular y
-   escritorio; el acabado responsive completo llega en la etapa 5 (RNF-2). */
+   Las reglas base cubren escritorio y celular con anchos fluidos; la sección
+   final (etapa 5, RNF-2) acomoda lo que se rompe en pantallas chicas. */
 
 * {
     box-sizing: border-box;
@@ -70,6 +70,15 @@ body {
 label {
     display: block;
     margin: 0.75rem 0 0.25rem;
+}
+
+/* Los campos heredan la tipografía del sitio: además de lucir mejor, evita
+   el zoom que iOS aplica al enfocar un campo con letra chica (etapa 5). */
+input,
+select,
+textarea {
+    font-family: inherit;
+    font-size: 1rem;
 }
 
 input {
@@ -252,6 +261,7 @@ input {
 
 .bike-description {
     white-space: pre-wrap; /* respeta los saltos de línea de la descripción */
+    overflow-wrap: anywhere; /* una URL pegada no desborda la pantalla */
 }
 
 .bike-meta {
@@ -477,4 +487,45 @@ input {
 .photo-slot.is-filled .photo-slot-icon,
 .photo-slot.is-filled .photo-slot-hint {
     display: none;
+}
+
+/* Etapa 5: pantallas chicas y textos difíciles (RNF-2). Las grillas y las
+   imágenes ya son fluidas de las etapas anteriores; esto cubre lo que sigue
+   rompiendo en un celular. */
+
+/* Títulos y encabezados con palabras muy largas (una URL como título, por
+   ejemplo): se parten en vez de forzar desplazamiento horizontal. */
+h1,
+h2 {
+    overflow-wrap: break-word;
+}
+
+/* Pie de página: centrado, discreto y con el mismo ancho que el contenido. */
+.site-footer {
+    max-width: 640px;
+    margin: 2rem auto 0;
+    padding: 0 1rem 2rem;
+    color: #666666;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* Celulares (hasta 480px): la navegación del encabezado pasa a una segunda
+   fila en vez de apretarse, y el ✕ de quitar foto crece para alcanzarse
+   con el dedo. */
+@media (max-width: 480px) {
+    .site-header {
+        flex-wrap: wrap;
+    }
+
+    .site-nav {
+        width: 100%;
+        flex-wrap: wrap;
+        row-gap: 0.25rem;
+    }
+
+    .slot-remove {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
 }

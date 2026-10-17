@@ -201,18 +201,37 @@ de cada decisión.
 
 ## Etapa 5 — No funcionales (H10)
 
-- [ ] **5.1 Responsive**: `public/css/style.css` para vitrina, detalle, panel y
+- [x] **5.1 Responsive**: `public/css/style.css` para vitrina, detalle, panel y
   formularios.
   RF: RNF-2.
   Hecho cuando: a mano, en ancho de celular se usan las 4 pantallas sin
   desplazamiento horizontal.
+  Verificado: solo CSS (el viewport ya existía en el header y todo el resto
+  ya era fluido: grillas con `1fr`, imágenes con `width: 100%` y el main con
+  padding). Ajustes de la etapa 5: campos (`input`, `select`, `textarea`)
+  heredan la tipografía (evita el zoom de iOS al enfocar), navegación del
+  encabezado que se envuelve a segunda fila hasta 480px, ✕ de quitar foto de
+  2.5rem en celular para el dedo, textos largos sin espacios con
+  `overflow-wrap` (títulos y descripción) y pie con estilo propio. Se pidió
+  revisar a mano en el navegador del usuario.
 
-- [ ] **5.2 Checklist manual**: segunda tanda en < 2 s, botón "atrás" tras
+- [x] **5.2 Checklist manual**: segunda tanda en < 2 s, botón "atrás" tras
   cerrar sesión pide login, cerrar la app del navegador corta la sesión y dos
   dispositivos con sesión no se pisan.
   RF: RNF-3, RF-2.
   Hecho cuando: los 4 puntos se recorren en verde y queda anotado en
   `docs/changelog.md`.
+  Verificado: (1) la segunda tanda del scroll infinito tardó 0.003 s y
+  0.002 s en dos corridas contra `/api/bikes.php` (límite: 2 s); (2) las 4
+  pantallas privadas mandan `Cache-Control: no-store` (nuevo, en
+  `require_login_or_redirect()`; PHP ya manda su `nocache` de sesión y esto
+  lo deja explícito a prueba de configuración), así que el "atrás" vuelve a
+  pedirlas al servidor y el guard manda al login; (3) la cookie de sesión no
+  tiene Expires ni Max-Age (`Set-Cookie: PHPSESSID=...; path=/; HttpOnly;
+  SameSite=Lax`), o sea que cerrar la aplicación del navegador la corta; (4)
+  dos sesiones independientes de ana en jars distintos: cerrar sesión en uno
+  deja al otro en 200 y funcionando. El paso 2 y el 3 se completan a mano en
+  el navegador (atrás real y cierre real de la app).
 
 ## Etapa 6 — Cierre
 

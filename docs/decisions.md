@@ -50,6 +50,14 @@
   chiquito y el botón a la vista: el mismo envío, sólo que manual. La pista
   "🔄 Cambiar foto" aparece al pasar el mouse o al enfocar el archivo con
   Tab, para que el click se entienda sin instrucciones.
+- **`Cache-Control: no-store` explícito en las pantallas privadas** (etapa 5,
+  RNF-3): el guard `require_login_or_redirect()` manda el encabezado antes de
+  cualquier salida. PHP ya envía su `nocache` de sesión por defecto, pero
+  dejarlo explícito hace que el comportamiento no dependa de la configuración
+  `session.cache_limiter`: el botón "atrás" después de cerrar sesión siempre
+  vuelve a pedir la pantalla al servidor, y sin sesión cae en el guard y
+  termina en el login. La vitrina (pública) no lo lleva: su caché es
+  inofensiva y ayuda al rendimiento (RNF-3).
 
 ## 2026-10-16 — Etapa 4: decisiones de implementación
 - **La verificación de dueño vive en el modelo, no en la pantalla** (RF-10):
