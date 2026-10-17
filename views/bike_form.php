@@ -1,10 +1,17 @@
 <?php
-// views/bike_form.php — formulario de motos (RF-3).
+// views/bike_form.php — formulario de motos (RF-3 y RF-6).
 // Compartido entre publicar (etapa 2) y editar (tarea 4.2).
 // Recibe: $action (a dónde se envía), $errors (errores por campo),
-// $old (lo que el usuario había tipeado) y $submitLabel (texto del botón).
+// $old (lo que el usuario había tipeado), $submitLabel (texto del botón),
+// $submitName (nombre del botón, opcional: la edición de fotos y la de
+// datos llegan al mismo URL y el servidor las distingue por este nombre),
+// $photosOptional (en edición con recuadros propios: la foto nueva es
+// opcional) y $photoSlots (cuántos recuadros vacíos mostrar: 4 al
+// publicar, 0 si las fotos se manejan en su propio formulario).
 // Los errores y los valores se imprimen siempre con htmlspecialchars().
 
+$photosOptional = $photosOptional ?? false;
+$photoSlots = $photoSlots ?? 4;
 ?>
 <form method="post" action="<?= htmlspecialchars($action) ?>" enctype="multipart/form-data" novalidate>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token()) ?>">
@@ -53,8 +60,34 @@
         <p class="error"><?= htmlspecialchars($errors['description']) ?></p>
     <?php endif; ?>
 
-    <label for="photos">Fotos (1 a 4: JPEG, PNG o WEBP de hasta 2 MB y al menos 200×200)</label>
-    <input type="file" id="photos" name="photos[]" accept="image/jpeg,image/png,image/webp" multiple required>
+    <?php if ($photoSlots > 0): ?>
+        <label><?= $photosOptional
+            ? 'Foto(s) nuevas (opcional: JPEG, PNG o WEBP de hasta 2 MB y al menos 200×200)'
+            : 'Fotos (1 a 4: JPEG, PNG o WEBP de hasta 2 MB y al menos 200×200)' ?></label>
+
+        <!-- Recuadros: UNO por foto, cada uno con su propio input de archivo.
+             Se hace así (y no un solo input con el atributo multiple) porque
+             no todos los navegadores dejan elegir varios archivos de una vez
+             (Safari no): con un recuadro por foto se comporta igual en todos.
+             photos.js agrega la vista previa al elegir; sin JavaScript el
+             recuadro igual funciona: el input sigue siendo clickeable y el
+             formulario envía la foto elegida. -->
+        <div class="photo-slots">
+            <?php for ($slot = 0; $slot < $photoSlots; $slot++): ?>
+                <label class="photo-slot">
+                    <input type="file" class="photo-slot-input" name="photos[]"
+                           accept="image/jpeg,image/png,image/webp"
+                           aria-label="Foto <?= $slot + 1 ?> de la publicación"
+                           <?= (!$photosOptional && $slot === 0) ? 'required' : '' ?>>
+                    <span class="photo-slot-icon" aria-hidden="true">📷</span>
+                    <span class="photo-slot-hint">Elegí una foto</span>
+                    <img class="photo-slot-preview" alt="">
+                </label>
+            <?php endfor; ?>
+        </div>
+        <script src="/js/photos.js" defer></script>
+    <?php endif; ?>
+
     <?php if (isset($errors['photos'])): ?>
         <p class="error"><?= htmlspecialchars($errors['photos']) ?></p>
     <?php endif; ?>
@@ -62,5 +95,5 @@
         <p class="error"><?= htmlspecialchars($detail) ?></p>
     <?php endforeach; ?>
 
-    <button type="submit" class="button"><?= htmlspecialchars($submitLabel) ?></button>
+    <button type="submit" class="button"<?php if (isset($submitName)): ?> name="<?= htmlspecialchars($submitName) ?>"<?php endif; ?>><?= htmlspecialchars($submitLabel) ?></button>
 </form>

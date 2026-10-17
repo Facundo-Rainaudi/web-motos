@@ -125,6 +125,17 @@ describe('photo_batch (RF-3)', function () {
             ->and(implode(' ', $result['errors']))->toContain('repetida');
     });
 
+    it('rechaza una foto igual a una ya guardada en la publicación (edición, RF-6)', function () use ($batch_of) {
+        $jpeg = __DIR__ . '/../fixtures/valid_200x200.jpg';
+
+        // Al editar, el lote viene con los hashes de las fotos ya guardadas:
+        // una foto idéntica a una existente se rechaza por repetida.
+        $result = photo_batch($batch_of([$jpeg]), 4, [sha1_file($jpeg)]);
+
+        expect($result['valid'])->toBe([])
+            ->and(implode(' ', $result['errors']))->toContain('ya está guardada');
+    });
+
     it('devuelve los motivos de cada foto rechazada y las válidas del resto', function () use ($batch_of) {
         $result = photo_batch($batch_of([
             __DIR__ . '/../fixtures/valid_200x200.jpg',

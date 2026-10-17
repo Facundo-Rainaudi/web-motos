@@ -143,6 +143,8 @@ require __DIR__ . '/../views/header.php';
     <?php
     $action = '/publish.php';
     $submitLabel = 'Publicar moto';
+    // En publicar la foto es obligatoria; el modo opcional es solo de editar.
+    $photosOptional = false;
     require __DIR__ . '/../views/bike_form.php';
     ?>
 </section>

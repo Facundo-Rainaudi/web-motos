@@ -268,3 +268,213 @@ input {
 .bike-meta dd {
     margin: 0;
 }
+
+/* Etapa 4: gestión del dueño — mis publicaciones, acciones y edición. */
+
+/* Fila de acciones bajo cada tarjeta de "Mis publicaciones". */
+.owner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin: -0.25rem 0 1rem;
+}
+
+/* Los formularios de acción son botones sueltos: sin margen propio. */
+.owner-actions form,
+.owner-actions .button {
+    margin: 0;
+}
+
+/* Variantes de color para distinguir acciones sin cambiar el look. */
+.button-secondary {
+    background: #6b7c8f;
+}
+
+.button-danger {
+    background: #b00020;
+}
+
+/* Recuadros CON foto ya cargada (edición): la foto llena el recuadros y
+   el control queda sobre ella (✕) o a su pie (reemplazar). */
+.photo-slot.is-filled {
+    position: relative;
+    display: block;
+    padding: 0;
+    border-style: solid;
+    border-color: #d5dde6;
+    background: #ffffff;
+    cursor: default;
+}
+
+.photo-slot-photo {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+/* ✕ de quitar: círculo rojo sobre la esquina de la foto. */
+.slot-remove {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(176, 0, 32, 0.9);
+    color: #ffffff;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* Reemplazar la única foto (RF-6): con JS, hacer click en la foto abre el
+   selector (el recuadros es un <label> del archivo, que queda oculto) y el
+   archivo se reemplaza solo apenas se elige. Sin JS se ve el archivo chiquito
+   y el botón "Reemplazar": el mismo envío, sólo que manual. La clase .js la
+   agrega photos.js al cargar, como en el carrusel. */
+.slot-swap {
+    display: none;
+}
+
+.js .slot-swap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: #ffffff;
+    text-align: center;
+    cursor: pointer;
+}
+
+.js .slot-swap-hint {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.2;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+/* La pista "Cambiar foto" aparece al pasar el mouse o al enfocar el
+   archivo con el Teclado (llega al recuadro oculto con Tab). */
+.js .photo-slot.is-filled:hover .slot-swap,
+.js .photo-slot.is-filled:focus-within .slot-swap {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.js .photo-slot.is-filled:hover .slot-swap-hint,
+.js .photo-slot.is-filled:focus-within .slot-swap-hint {
+    opacity: 1;
+}
+
+/* Sin JS: el archivo se ve chiquito para poder elegirlo a mano. */
+.slot-swap-input {
+    display: block;
+    width: calc(100% - 1rem);
+    margin: 0.5rem 0.5rem 0;
+    font-size: 0.75rem;
+}
+
+/* Con JS: el archivo queda invisible (lo abre el click en la foto). */
+.js .slot-swap-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Sin JS: botón visible que envía el reemplazo; con JS queda escondido
+   porque photos.js lo aprieta solo al elegir el archivo. */
+.slot-swap-button {
+    display: block;
+    width: calc(100% - 1rem);
+    margin: 0.5rem;
+    padding: 0.4rem;
+}
+
+.js .slot-swap-button {
+    display: none;
+}
+
+/* Recuadros de fotos (RF-3, RF-6): uno por foto, clicables.
+   Cada recuadro envuelve un input de UNA sola foto (así todos los
+   navegadores se comportan igual) y photos.js le pone la vista previa:
+   sin JS se ve el ícono y el recuadro igual selecciona y envía. */
+.photo-slots {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin: 0.5rem 0 1rem;
+}
+
+.photo-slot {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 7rem;
+    margin: 0;
+    padding: 0.5rem;
+    border: 2px dashed #b9c4d0;
+    border-radius: 8px;
+    background: #f7f9fb;
+    color: #666666;
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.photo-slot:hover,
+.photo-slot:focus-within {
+    border-color: #1d6fd1;
+    color: #1d6fd1;
+}
+
+/* El input queda invisible y estira sobre todo el recuadro: cualquier click
+   dentro del casillero abre el selector de archivos. */
+.photo-slot-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.photo-slot-icon {
+    font-size: 1.6rem;
+}
+
+/* Vista previa: tapa el ícono y el texto cuando ya se eligió la foto. */
+.photo-slot-preview {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.photo-slot.is-filled .photo-slot-preview {
+    display: block;
+}
+
+.photo-slot.is-filled .photo-slot-icon,
+.photo-slot.is-filled .photo-slot-hint {
+    display: none;
+}

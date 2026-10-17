@@ -1,5 +1,90 @@
 # Decisiones de diseño
 
+## 2026-10-17 — Recuadros de fotos: decisiones de implementación
+- **Un input de archivo por recuadro** (pedido del usuario; RF-3 y RF-6 sin
+  cambios): el formulario anterior tenía un único input con `multiple`, que
+  Chrome no comunicaba en la UI y Safari ignora por completo. Con 4
+  recuadros —cada uno con su propio input de una sola foto— el comportamiento
+  es idéntico en todos los navegadores: uno por recuadro. El primer recuadro
+  de publicar lleva `required` para el mínimo de 1 en el cliente; el
+  servidor sigue validando todo.
+- **Vista previa como mejora progresiva** (`public/js/photos.js`): al elegir
+  un archivo, el recuadro muestra su miniatura con FileReader (sin tocar el
+  servidor). Sin JavaScript el recuadro sigue siendo un label clickeable que
+  selecciona y envía la foto: solo se pierde la vista previa, igual que en el
+  carrusel del detalle.
+- **"Reemplazar esta foto" en vez de "Quitar" cuando solo queda una** (RF-6):
+  la regla "nunca sin fotos" no cambia, pero la publicación de una sola foto
+  quedaba sin salida para cambiarla. El reemplazo actualiza el nombre de
+  archivo de la MISMA fila (conserva id y posición), así que la publicación
+  no pasa ni un instante sin fotos y el archivo viejo se borra del disco
+  recién después. Pasa las mismas validaciones que cualquier subida y se
+  rechaza si es repetida de otra foto de la misma publicación (la que se
+  reemplaza no cuenta).
+- **Recuadros libres en editar**: la cantidad es `4 − las actuales`, calculada
+  en el servidor; con 4 fotos no se muestra ningún recuadro ni el script.
+- **Sesiones verificadas contra la base al abrir pantalla protegida**:
+  `require_login_or_redirect()` ahora llama a `user_exists()` y, si el id de
+  la sesión ya no existe, cierra la sesión y pide login. Cuesta un SELECT
+  indexado por página protegida y evita errores confusos aguas abajo (el
+  caso real: publicar con una sesión de un usuario borrado estallaba en la
+  clave foránea de bikes.user_id y mostraba "No se pudo guardar la
+  publicación"). Decisión tomada tras encontrarlo probando la etapa 4.
+- **Edición con una sola grilla y dos formularios** (segundo pedido del
+  usuario): los 4 recuadros conviven en una grilla —rellenos con la foto
+  publicada y su control (✕ quitar, o campo + "Reemplazar" si es la única)—
+  y los vacíos agregan fotos. Como HTML no permite formularios anidados, la
+  página tiene dos `<form>` separados (fotos y datos) que apuntan al mismo
+  URL; cada acción es un botón con `name` propio (`remove_photo_id`,
+  `replace_photo_id`, `save_data`) y el servidor distingue cuál se presionó,
+  con un único chequeo de CSRF para todos. Las fotos se agregan con su propio
+  botón "Agregar fotos", independiente de los datos.
+- **Reemplazar la única foto con un click en la imagen** (tercer pedido del
+  usuario, ajuste del rediseño): el recuadros de la foto única ya no muestra
+  el archivo nativo ni el botón a la vista; el recuadros entero es un
+  `<label>` del archivo oculto, así que el click abre el selector y
+  `photos.js` envía el reemplazo apenas se elige (aprieta el botón
+  "Reemplazar" del mismo formulario, que en ese caso queda escondido). La
+  misma mejora progresiva de siempre: el script agrega la clase `.js` a
+  `<html>` —como el carrusel con la suya— y, sin ella, quedan el archivo
+  chiquito y el botón a la vista: el mismo envío, sólo que manual. La pista
+  "🔄 Cambiar foto" aparece al pasar el mouse o al enfocar el archivo con
+  Tab, para que el click se entienda sin instrucciones.
+
+## 2026-10-16 — Etapa 4: decisiones de implementación
+- **La verificación de dueño vive en el modelo, no en la pantalla** (RF-10):
+  `delete_bike_as_owner()` y `toggle_bike_status_as_owner()` reciben el id del
+  actor pero leen el dueño REAL de la base y rechazan si no coincide. Las
+  páginas (`bike_actions.php`, `edit-bike.php`) son solo guiones: sesión, CSRF,
+  llamada al modelo y flash. Así "un usuario ajeno no logra borrar/vender" es
+  una propiedad testeada del modelo, no de un HTML.
+- **`bike_actions.php` solo acepta POST** y siempre termina en redirect a
+  Mis publicaciones con aviso por flash (PRG). Una llegada por GET redirige
+  sin hacer nada: no existen acciones por URL.
+- **Borrar: primero la base, después los archivos**. El DELETE de la moto
+  dispara la cascada de fotos en el esquema; recién después se borran los
+  archivos del disco. Si algo fallara en el medio quedaría algún archivo
+  huérfano (inofensivo), nunca una fila de foto sin archivo (rompería la
+  vitrina).
+- **Editar reutiliza `views/bike_form.php` con la bandera `$photosOptional`**:
+  en publicar la foto es obligatoria (RF-3) y en edición es opcional porque la
+  moto ya tiene al menos una (RF-6); el resto del formulario es idéntico,
+  mismos validadores incluidos.
+- **Repetidas contra las ya guardadas al editar**: `photo_batch()` recibe los
+  hashes de las fotos existentes (`$existingHashes`) y los trata como vistas
+  desde el principio, con mensaje propio ("ya está guardada en la
+  publicación"). La comparación es por hash sha1 del contenido, no del nombre.
+- **Posición de foto nueva = `MAX(position) + 1`**: usar `count()` provocaba
+  que, tras quitar una foto (quedan huecos), la nueva empatara en posición con
+  una existente y el orden del carrusel quedara indefinido. Bug hallado con
+  curl durante la verificación de la etapa; corregido con test de regresión.
+- **Edición exitosa redirige al detalle** (`/bike.php?id=`), igual que
+  publicar: el dueño ve el resultado de lo que acaba de cambiar.
+- **Vender es un alternador, no un selector**: un solo botón que alterna
+  disponible ↔ vendida (`toggle_bike_status_as_owner()`), sin estado
+  intermedio ni doble confirmación. Marcar dos veces seguidas simplemente
+  vuelve al estado anterior, sin errores.
+
 ## 2026-10-15 — Etapa 3: decisiones de implementación
 - **Paginado por id sobre orden por fecha**: el feed ordena `created_at DESC,
   id DESC` (como pide la spec) pero el cursor compara solo `id < último`; como

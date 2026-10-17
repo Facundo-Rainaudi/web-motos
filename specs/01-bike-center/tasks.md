@@ -135,36 +135,69 @@ de cada decisión.
 
 ## Etapa 4 — Gestión del dueño (H6–H9)
 
-- [ ] **4.1 Mis publicaciones**: `public/my-bikes.php` con estado vacío y
+- [x] **4.1 Mis publicaciones**: `public/my-bikes.php` con estado vacío y
   acciones por dueño.
   RF: RF-9.
   Hecho cuando: el dueño ve solo sus motos con su estado y un usuario sin
   sesión que abre la URL recibe el pedido de registro.
+  Verificado: el listado usa `list_bikes_by_user()` (solo las suyas, con foto
+  principal y badge Disponible/Vendida), el estado vacío invita a publicar y
+  un visitante recibe 302 a /login.php. Enlace "Mis publicaciones" en el
+  header de todo usuario logueado.
 
-- [ ] **4.2 Editar**: `public/edit-bike.php?id=` con mismas validaciones y
+- [x] **4.2 Editar**: `public/edit-bike.php?id=` con mismas validaciones y
   fotos de a una (1 a 4) + tests de edición.
   RF: RF-6.
   Hecho cuando: el test confirma que editar no mueve la moto en el feed y que
   una vendida se puede editar; a mano no se puede dejar en 0 fotos.
+  Verificado: `update_bike()` no toca created_at ni status (test y curl);
+  quitar foto con botón propio por foto, bloqueado al ser la última; fotos
+  nuevas contra las guardadas por hash (`photo_batch()` con los hashes
+  existentes) y cupo 4 en total; un ajeno ni llega al formulario (302 con
+  flash "Solo el dueño...").
 
-- [ ] **4.3 Borrar**: `public/bike_actions.php` para borrar (DB + archivos) +
+- [x] **4.3 Borrar**: `public/bike_actions.php` para borrar (DB + archivos) +
   test de cascada y de usuario ajeno.
   RF: RF-7, RF-10.
   Hecho cuando: al borrar desaparecen la moto, sus registros de fotos y sus
   archivos, y el test de un usuario ajeno no logra borrar.
+  Verificado: `delete_bike_as_owner()` borra la moto (cascada de photos en el
+  esquema) y después los archivos del disco; curl: moto borrada, filas y
+  archivo desaparecidos, detalle en "no disponible"; el ajeno recibe error y
+  todo queda igual.
 
-- [ ] **4.4 Estado vendida**: alternar disponible/vendida en
+- [x] **4.4 Estado vendida**: alternar disponible/vendida en
   `bike_actions.php` + test de reversibilidad y de doble marca.
   RF: RF-8, RF-10.
   Hecho cuando: el test alterna dos veces sin error y la vitrina muestra la
   etiqueta correcta; el usuario ajeno no tiene la opción ni le funciona la
   acción directa.
+  Verificado: `toggle_bike_status_as_owner()` alterna sold ↔ available (tests
+  de reversibilidad y de doble marca); curl: dos POST seguidos sin error,
+  badge Vendida/Disponible correcto en tarjeta y detalle; el POST directo del
+  ajeno no cambia nada.
 
-- [ ] **4.5 CSRF completo**: token en registro, publicar, editar, borrar y
+- [x] **4.5 CSRF completo**: token en registro, publicar, editar, borrar y
   vender.
   RF: RF-1 a RF-10 (seguridad).
   Hecho cuando: enviar un POST sin token a cualquiera de esas acciones no
   produce ningún cambio.
+
+- [x] **4.6 Recuadros de fotos** (pedido del usuario): publicar y editar
+  muestran recuadros clicables (uno por foto, con vista previa) y editar
+  ofrece "Reemplazar esta foto" cuando solo queda una.
+  RF: RF-3, RF-6.
+  Hecho cuando: se pueden elegir hasta 4 fotos, una por recuadro, en
+  cualquier navegador; la vista previa se ve con JavaScript y sin él igual
+  se envían las fotos; y la moto de una sola foto se puede reemplazar sin
+  quedarse sin fotos. Verificado con curl: 4 recuadros en publicar (4 fotos
+  guardadas en posiciones 0-3), recuadros libres = 4 − las actuales en
+  editar, reemplazo conserva id/posición y borra el archivo viejo, repetida
+  rechazada y POST sin token sin cambio.
+  Verificado con curl en las cinco acciones: sin token, ninguna cambia la
+  base (motos, fotos, usuarios, título y estado intactos) y todas muestran
+  "El formulario expiró o no era válido"; GET a bike_actions.php redirige sin
+  acción.
 
 ## Etapa 5 — No funcionales (H10)
 

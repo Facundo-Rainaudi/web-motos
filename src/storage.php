@@ -94,12 +94,15 @@ function validate_photo(array $file): array
 }
 
 /**
- * Valida el lote completo de fotos del formulario (RF-3).
+ * Valida el lote completo de fotos del formulario (RF-3 y RF-6).
  * Respeta el máximo de $max fotos, detecta repetidas por hash dentro del mismo
  * lote y junta los motivos de cada rechazo numerados como "Foto 2: ...".
+ * $existingHashes (solo al editar) trae los hashes de las fotos ya guardadas
+ * de la publicación: así una foto idéntica a una existente se rechaza como
+ * repetida, igual que una repetida dentro del propio lote.
  * Devuelve ['valid' => [entradas], 'errors' => [mensajes]].
  */
-function photo_batch(array $files, int $max = 4): array
+function photo_batch(array $files, int $max = 4, array $existingHashes = []): array
 {
     // $_FILES con name="photos[]" trae arreglos; con un solo nombre, escalares.
     $tmpNames = is_array($files['tmp_name'] ?? null) ? $files['tmp_name'] : [($files['tmp_name'] ?? '')];
@@ -107,7 +110,8 @@ function photo_batch(array $files, int $max = 4): array
 
     $valid = [];
     $errors = [];
-    $seen = [];
+    // Las que ya están guardadas cuentan como vistas desde el principio.
+    $seen = array_fill_keys($existingHashes, true);
 
     foreach ($tmpNames as $i => $tmp) {
         $label = 'Foto ' . ($i + 1) . ': ';
@@ -136,7 +140,11 @@ function photo_batch(array $files, int $max = 4): array
         }
 
         if (isset($seen[$result['sha1']])) {
-            $errors[] = $label . 'es repetida dentro de la misma publicación.';
+            // Mensaje distinto según contra qué se comparó: el lote en sí o
+            // una foto que la publicación ya tiene guardada (edición).
+            $errors[] = $label . (in_array($result['sha1'], $existingHashes, true)
+                ? 'es repetida: ya está guardada en la publicación.'
+                : 'es repetida dentro de la misma publicación.');
             continue;
         }
 

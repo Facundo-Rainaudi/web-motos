@@ -68,3 +68,15 @@ describe('authenticate_user (RF-2)', function () {
         expect($result['ok'])->toBeFalse();
     });
 });
+
+describe('user_exists (RF-2)', function () {
+    it('confirma una cuenta existente y descarta un id que ya no está en la base', function () {
+        // Protege las pantallas contra sesiones huérfanas: una sesión que
+        // apunta a un usuario borrado (por ejemplo, al restaurar la base de
+        // desarrollo) debe patear al login, no fallar a mitad de una acción.
+        $userId = (int) register_user(test_db(), 'Ana Perez', 'ana@x.com', 'moto2026', '1155555555')['user_id'];
+
+        expect(user_exists(test_db(), $userId))->toBeTrue()
+            ->and(user_exists(test_db(), 999999))->toBeFalse();
+    });
+});

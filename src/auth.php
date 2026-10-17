@@ -31,6 +31,20 @@ function find_user_by_id(PDO $pdo, int $userId): ?array
 }
 
 /**
+ * Comprueba que la cuenta exista realmente en la base (RF-2).
+ * Lo usa require_login_or_redirect() para descartar sesiones huérfanas: una
+ * sesión que apunta a un usuario ya borrado debe volver a pedir login en vez
+ * de fallar con un error confuso a mitad de una acción.
+ */
+function user_exists(PDO $pdo, int $userId): bool
+{
+    $stmt = $pdo->prepare('SELECT 1 FROM users WHERE id = :id');
+    $stmt->execute(['id' => $userId]);
+
+    return $stmt->fetchColumn() !== false;
+}
+
+/**
  * Valida y crea una cuenta nueva (RF-1).
  * Si algo está mal, devuelve ['ok' => false, 'errors' => [campo => mensaje]]
  * sin tocar la base. Si está todo bien, guarda el usuario y devuelve

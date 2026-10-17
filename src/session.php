@@ -72,10 +72,22 @@ function logout_user(): void
  * Protege una pantalla que solo tiene sentido con sesión iniciada (RF-2 y RF-9):
  * un visitante que llega directo a la URL se manda al login, donde también
  * puede elegir crear cuenta. Siempre sale del script desde acá.
+ * Además corta las sesiones huérfanas: si el usuario de la sesión ya no
+ * existe en la base (por ejemplo, se restauró la base de desarrollo), se
+ * cierra la sesión y se vuelve a pedir login, en vez de fallar después con
+ * un error confuso (como un INSERT con una clave foránea inexistente).
  */
 function require_login_or_redirect(string $destination = '/login.php'): void
 {
-    if (current_user_id() === null) {
+    $userId = current_user_id();
+
+    if ($userId === null) {
+        header('Location: ' . $destination);
+        exit;
+    }
+
+    if (!user_exists(db_connect(), $userId)) {
+        logout_user();
         header('Location: ' . $destination);
         exit;
     }

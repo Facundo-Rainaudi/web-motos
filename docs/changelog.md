@@ -1,5 +1,99 @@
 # Changelog
 
+## 2026-10-17
+- **Recuadros de fotos en publicar y editar** (pedido del usuario tras probar
+  la etapa 4; tarea 4.6): donde antes había una sola línea de input con el
+  atributo `multiple` (que Chrome escondía y Safari no soporta), ahora hay
+  **4 recuadros clicables con borde punteado, uno por foto**, cada uno con su
+  propio input de una sola foto: se comportan igual en todos los
+  navegadores.
+  - Nuevo `public/js/photos.js`: vista previa de la foto elegida en el
+    recuadro (mejora progresiva: sin JS el recuadro igual selecciona y envía).
+  - Nuevo `replace_photo_of_bike()` en el modelo de fotos, con test; el
+    reemplazo valida tipo/peso/medidas y rechaza repetidas contra las otras
+    fotos de la publicación.
+- **Edición de fotos rediseñada con una sola grilla de 4 recuadros**
+  (segundo pedido del usuario): donde antes había una sección "Fotos
+  actuales" (miniaturas con su botón) separada de los recuadros vacíos del
+  formulario de datos, ahora la edición muestra **los 4 recuadros juntos**:
+  los que ya tienen foto se ven **rellenos** con la foto publicada y su
+  control —**✕** para quitar (con 2 o más fotos), o campo + botón
+  **"Reemplazar"** cuando es la única—, y los vacíos son los pickers para
+  agregar fotos (con vista previa).
+  - La página tiene ahora **dos formularios** que apuntan al mismo URL y se
+    distinguen por el botón presionado: fotos (`remove_photo_id`,
+    `replace_photo_id`, o agregar `photos[]`) y datos (`save_data`), todos
+    con un único chequeo de CSRF al entrar.
+  - Nuevo helper `next_photo_position()` en el modelo de fotos (la posición
+    más alta + 1), compartido por agregar fotos y `update_bike_with_photos()`.
+  - Verificado con curl: moto de 2 fotos → 2 rellenos con ✕ + 2 vacíos;
+    de 1 foto → 1 relleno con Reemplazar + 3 vacíos; de 4 → 4 rellenos sin
+    botón de agregar; agregar/quitar/reemplazar/guardar datos OK; sin CSRF
+    ningún cambio. Suite en verde: **91 tests, 219 aserciones**.
+- **Reemplazar la única foto con un click en la imagen** (tercer pedido del
+  usuario, ajuste del rediseño): el recuadros de la foto única ya no muestra
+  el archivo nativo ("Seleccionar archivo") ni el botón a la vista; el
+  recuadros entero es un `<label>` del archivo oculto, así que al hacer
+  click se abre el selector y `photos.js` envía el reemplazo apenas se elige
+  (apretando el botón "Reemplazar" del mismo formulario, que en ese caso
+  queda escondido). Al pasar el mouse (o al llegar con Tab) aparece una
+  pista "🔄 Cambiar foto" sobre la imagen. **Sin JavaScript** se ve el
+  archivo chiquito y el botón "Reemplazar" de antes: el mismo envío, sólo
+  que manual — la clase `.js` en `<html>` la agrega `photos.js`, como hace
+  el carrusel. Verificado con curl: el HTML trae el label, el archivo oculto
+  y el botón de reserva (ningún "Seleccionar archivo" a la vista) y el
+  reemplazo funciona (foto nueva, archivo viejo borrado). Suite en verde:
+  **91 tests, 219 aserciones**.
+- **Guard contra sesiones huérfanas** (bug encontrado al probar la etapa 4):
+  al restaurar la base de desarrollo se borraron cuentas de prueba y quedaron
+  sesiones apuntando a usuarios inexistentes; publicar entonces fallaba con
+  el confuso "No se pudo guardar la publicación..." (el INSERT chocaba con
+  la clave foránea de `user_id`). Ahora `require_login_or_redirect()` comprueba
+  con `user_exists()` que la cuenta siga existiendo: si no, cierra la sesión
+  y manda al login. Tests: `UserTest` cubre `user_exists()` (91 tests, 219
+  aserciones). Verificado con curl: la sesión huérfana recibe 302 a
+  /login.php en las pantallas protegidas y una sesión válida sigue en 200.
+
+## 2026-10-16
+- **Etapa 4 completa — Gestión del dueño (RF-6 a RF-10)** en la rama
+  `feature/etapa-4-gestion-dueño`:
+  - **4.1 Mis publicaciones** (`public/my-bikes.php` + `list_bikes_by_user()`):
+    el dueño ve solo sus motos con foto principal, badge Disponible/Vendida y
+    las acciones Editar / Borrar / Marcar como vendida; estado vacío que
+    invita a publicar; sin sesión → 302 a /login.php. Enlace "Mis
+    publicaciones" en el header de los logueados.
+  - **4.2 Editar** (`public/edit-bike.php?id=`): reutiliza `views/bike_form.php`
+    con los mismos validadores que publicar; quitar fotos de a una con botón
+    por foto (bloqueado al ser la última), agregar fotos nuevas con cupo 4 en
+    total y rechazo de repetidas contra las ya guardadas por hash
+    (`photo_batch()` con `$existingHashes`). `update_bike()` no toca
+    created_at ni status: la moto no se mueve en el feed y una vendida se
+    puede editar.
+  - **4.3 y 4.4 Borrar y vender** (`public/bike_actions.php`): solo POST con
+    CSRF y redirect PRG a Mis publicaciones; `delete_bike_as_owner()` borra
+    la moto (cascada en la base) y después sus archivos del disco;
+    `toggle_bike_status_as_owner()` alterna disponible ↔ vendida de forma
+    reversible. La verificación de dueño vive en el modelo, con el id sacado
+    de la base, nunca del formulario (RF-10).
+  - **4.5 CSRF completo**: registro, publicar, editar, quitar foto, borrar y
+    vender chequean el token; verificado con curl que un POST sin token a
+    ninguna de las cinco acciones produce cambio.
+- Tests: +18 (`tests/Integration/OwnerTest.php` con 17 y uno nuevo en
+  `StorageTest`): lista del dueño, editar sin mover el feed ni el estado,
+  edición de vendida, transacción de editar con fotos (y su rollback), quitar
+  foto (máximo, mínimo y foto ajena), borrar con archivos (dueño, ajeno,
+  inexistente) y alternar vendida (reversibilidad, doble marca, ajeno).
+  Suite en verde: **88 tests, 211 aserciones**.
+- **Bug encontrado y corregido durante la verificación**: al agregar fotos en
+  la edición, la posición se calculaba con `count()` y tras quitar una foto
+  (quedan huecos en la numeración) la nueva colisionaba con una existente.
+  Ahora es `MAX(position) + 1`, con test de regresión.
+- Verificación manual con curl de la etapa completa: editar (propia y ajena),
+  quitar foto (una, la última y ajena), agregar foto (aceptada y repetida),
+  borrar (dueño con archivos y ajeno sin cambio), vender dos veces, y las
+  cinco acciones sin CSRF. Base de desarrollo restaurada a la semilla
+  prístina (4 usuarios, 27 motos, 54 fotos, uploads completos).
+
 ## 2026-10-15
 - Carrusel de fotos en el detalle (`bike.php`, pedido del usuario): en lugar
   de apilar las fotos, se muestra una por vez con botones ◀ ▶ (navegación ida
