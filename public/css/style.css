@@ -1,190 +1,311 @@
-/* public/css/style.css — estilos del sitio.
-   Las reglas base cubren escritorio y celular con anchos fluidos; la sección
-   final (etapa 5, RNF-2) acomoda lo que se rompe en pantallas chicas. */
+/* public/css/style.css — estilos del sitio con sistema de diseño propio.
+   Mobile-first: las reglas base son para celular (375 px) y lo que se
+   amplía, en @media (min-width: ...).
+   Dirección visual: "taller y ruta en frío" — base azul noche de la marca
+   (header, botones y títulos) y un único acento petróleo reservado a
+   precios, foco y hovers; superficies planas (blanco + hairline, sin
+   sombras) para que la foto y el precio manden. Mobile-first a 375 px.
+   El HTML no cambió: mismas clases que siempre, sólo nuevo estilo.
+   Ver docs/design.md para los tokens y las decisiones. */
 
+/* ============================================================
+   1. Tokens: una única fuente de verdad del diseño.
+   ============================================================ */
+:root {
+    /* Paleta */
+    --color-ink: #16202b;          /* texto principal */
+    --color-ink-soft: #5b6a7a;     /* texto secundario (aprobado AA en blanco) */
+    --color-navy: #10243e;         /* marca: header, botones, títulos */
+    --color-navy-soft: #1a3554;    /* hover sobre la marca */
+    --color-accent: #0f6b70;       /* petróleo: precios, foco, hovers */
+    --color-accent-strong: #0a5257;/* petróleo oscuro: enlaces de acción */
+    --color-bg: #f2f4f7;           /* fondo de página */
+    --color-surface: #ffffff;      /* tarjetas y formularios */
+    --color-line: #dde3ea;         /* bordes suaves */
+    --color-ok: #12632f;
+    --color-ok-bg: #e4f4ea;
+    --color-danger: #98001c;
+    --color-danger-bg: #fbe5e9;
+    --focus-ring: rgba(15, 107, 112, 0.35); /* aro de foco accesible */
+
+    /* Escala de espaciado: 4 / 8 / 16 / 24 / 32 */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 16px;
+    --space-4: 24px;
+    --space-5: 32px;
+
+    /* Tipografía: una sola familia, jugando con pesos 400/700/800 */
+    --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --text-sm: 0.85rem;
+    --text-base: 1rem;
+    --text-lg: 1.15rem;
+    --text-price: 1.7rem;
+
+    /* Formas */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-pill: 999px;
+}
+
+/* ============================================================
+   2. Base: tipografía, fondo y accesibilidad global.
+   ============================================================ */
 * {
     box-sizing: border-box;
 }
 
 body {
     margin: 0;
-    font-family: system-ui, -apple-system, sans-serif;
-    color: #1a1a1a;
-    background: #f6f7f9;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.5;
+    color: var(--color-ink);
+    background: var(--color-bg);
 }
 
-/* Encabezado con la marca a la izquierda y la navegación a la derecha. */
+/* Títulos y textos largos sin espacios: se parten en vez de desbordar. */
+h1,
+h2 {
+    overflow-wrap: break-word;
+    color: var(--color-navy);
+}
+
+h1 {
+    font-size: 1.5rem;
+    margin: 0 0 var(--space-3);
+}
+
+h2 {
+    font-size: var(--text-lg);
+    margin: var(--space-4) 0 var(--space-2);
+}
+
+a {
+    color: var(--color-navy);
+}
+
+/* Foco visible en todo lo interactivo (accesibilidad con Teclado). */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+label.photo-slot:focus-within {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+/* ============================================================
+   3. Encabezado y navegación.
+   ============================================================ */
+/* En celular la navegación se envuelve a una segunda fila; a partir de
+   640px vuelve a la fila junto a la marca. */
 .site-header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    background: #10243e;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+    background: var(--color-navy);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* La marca lleva un punto petróleo: único guiño decorativo del sitio. */
 .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
     color: #ffffff;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: 0.02em;
     text-decoration: none;
+}
+
+.brand::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--color-accent);
+    transform: rotate(45deg);
 }
 
 .site-nav {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 1rem;
+    gap: var(--space-2) var(--space-3);
 }
 
 .site-nav a {
-    color: #cfe0f5;
+    color: #d9e6f7;
     text-decoration: none;
+    font-weight: 600;
+}
+
+.site-nav a:hover {
+    color: #ffffff;
+    text-decoration: underline;
 }
 
 .site-nav form {
     margin: 0;
 }
 
-/* El botón de "Cerrar sesión" parece un enlace, no un botón de sistema. */
+/* El "Cerrar sesión" parece un enlace, no un botón de sistema. */
 .link-button {
     background: none;
     border: 0;
     padding: 0;
-    color: #cfe0f5;
+    color: #d9e6f7;
     font: inherit;
+    font-weight: 600;
     cursor: pointer;
 }
 
-.site-main {
-    max-width: 640px;
-    margin: 1.5rem auto;
-    padding: 0 1rem;
-}
-
-.card {
-    background: #ffffff;
-    border-radius: 8px;
-    padding: 1.25rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-label {
-    display: block;
-    margin: 0.75rem 0 0.25rem;
-}
-
-/* Los campos heredan la tipografía del sitio: además de lucir mejor, evita
-   el zoom que iOS aplica al enfocar un campo con letra chica (etapa 5). */
-input,
-select,
-textarea {
-    font-family: inherit;
-    font-size: 1rem;
-}
-
-input {
-    width: 100%;
-    padding: 0.5rem;
-}
-
-.button {
-    display: inline-block;
-    margin-top: 1rem;
-    padding: 0.6rem 1rem;
-    background: #1d6fd1;
+.link-button:hover {
     color: #ffffff;
-    border: 0;
-    border-radius: 6px;
-    font: inherit;
-    cursor: pointer;
+    text-decoration: underline;
 }
 
-.error {
-    color: #b00020;
-    margin: 0.25rem 0 0;
+@media (min-width: 640px) {
+    .site-header {
+        flex-wrap: nowrap;
+        padding: var(--space-3) var(--space-4);
+    }
+
+    .site-nav {
+        flex-wrap: nowrap;
+    }
 }
 
-.notice {
-    color: #14682a;
-    margin: 0.25rem 0;
+/* ============================================================
+   4. Contenido, tarjetas y pie.
+   ============================================================ */
+.site-main {
+    max-width: 760px;
+    margin: var(--space-4) auto;
+    padding: 0 var(--space-3);
 }
 
-.muted {
-    color: #666666;
+/* Superficie plana: blanco + hairline, sin sombras (disciplina de la
+   skill frontend-design: la sombra idéntica bajo cada card es un tell). */
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
 }
 
-/* Etapa 3: vitrina (tarjetas y etiquetas), estado vacío y detalle. */
+.site-footer {
+    max-width: 760px;
+    margin: var(--space-5) auto 0;
+    padding: 0 var(--space-3) var(--space-5);
+    color: var(--color-ink-soft);
+    font-size: var(--text-sm);
+    text-align: center;
+}
 
+/* Tarjeta de moto: la foto manda y el precio (petróleo, extra-bold) es el
+   protagonista del dato. Sin hover de elevación: la card se queda quieta
+   y sólo su enlace reacciona. */
 .bike-card {
-    background: #ffffff;
-    border-radius: 8px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-bottom: var(--space-3);
 }
 
 .bike-card h2 {
-    margin: 0 0 0.25rem;
-    font-size: 1.1rem;
+    margin: 0 0 var(--space-1);
+    font-size: var(--text-lg);
 }
 
 .bike-card h2 a {
-    color: #10243e;
+    color: var(--color-navy);
     text-decoration: none;
 }
 
-/* Miniatura de la tarjeta: llena el ancho, recorta sin deformar (cover)
-   y mantiene proporción 4:3 en cualquier pantalla. */
+.bike-card h2 a:hover {
+    color: var(--color-accent-strong);
+}
+
+/* Miniatura: llena el ancho, recorta sin deformar (cover), 4:3. */
 .bike-photo {
     display: block;
     width: 100%;
     aspect-ratio: 4 / 3;
     object-fit: cover;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-    background: #e9edf2; /* respiro de color mientras la foto carga */
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+    background: var(--color-line); /* respiro mientras carga */
 }
 
 .bike-brand {
-    color: #666666;
-    margin: 0 0 0.5rem;
+    color: var(--color-ink-soft);
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-sm);
 }
 
+/* El precio en petróleo y negrita: es lo que el comprador busca primero
+   y el único color de acento del sitio. */
 .bike-price {
     margin: 0;
-    font-weight: 700;
+    color: var(--color-accent);
+    font-weight: 800;
 }
 
 .bike-price-big {
-    font-size: 1.4rem;
-    margin: 0.25rem 0;
+    font-size: var(--text-price);
+    margin: var(--space-1) 0 var(--space-2);
+    line-height: 1.2;
 }
 
-/* Etiqueta de estado: "Disponible" en verde, "Vendida" en rojo. */
+/* Etiquetas de estado: píldora con fondo, texto y borde (AA en ambos). */
 .badge {
     display: inline-block;
-    margin: 0.5rem 0 0;
-    padding: 0.15rem 0.6rem;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    margin: var(--space-2) 0 0;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-pill);
+    border: 1px solid transparent;
+    font-size: var(--text-sm);
+    font-weight: 700;
 }
 
 .badge-available {
-    background: #e2f4e8;
-    color: #14682a;
+    background: var(--color-ok-bg);
+    color: var(--color-ok);
+    border-color: #bfe3cc;
 }
 
 .badge-sold {
-    background: #f9e4e8;
-    color: #b00020;
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+    border-color: #f3c6cf;
 }
 
+/* Estado vendido: además de la etiqueta, la foto se apaga un poco
+   (degradación natural si el navegador no entiende :has). */
+.bike-card:has(.badge-sold) .bike-photo {
+    filter: grayscale(0.55) opacity(0.85);
+}
+
+/* Estados vacíos: el invite a publicar es una acción, va en petróleo. */
 .empty-state {
-    background: #ffffff;
-    border: 1px dashed #b9c4d0;
-    border-radius: 8px;
-    padding: 1.5rem;
+    background: var(--color-surface);
+    border: 1px dashed var(--color-line);
+    border-radius: var(--radius-md);
+    padding: var(--space-5) var(--space-4);
     text-align: center;
+    color: var(--color-ink-soft);
+}
+
+.empty-state a {
+    color: var(--color-accent-strong);
+    font-weight: 700;
 }
 
 /* Altura mínima para que el centinela del scroll infinito sea detectado. */
@@ -192,20 +313,132 @@ input {
     height: 1px;
 }
 
-/* Carrusel de fotos del detalle (RF-5): una foto a la vez con botones ◀ ▶.
-   Sin la clase .js (página sin JavaScript) todo queda visible y los botones
-   ocultos, así que ninguna foto se pierde. */
+#feed-status {
+    text-align: center;
+}
+
+/* ============================================================
+   5. Formularios: campos, botones y mensajes.
+   ============================================================ */
+label {
+    display: block;
+    margin: var(--space-3) 0 var(--space-1);
+    font-weight: 600;
+}
+
+/* Los campos heredan la tipografía (evita el zoom de iOS al enfocar). */
+input,
+select,
+textarea {
+    font-family: inherit;
+    font-size: var(--text-base);
+}
+
+input,
+select {
+    width: 100%;
+    padding: 10px var(--space-2);
+    border: 1.5px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-ink);
+}
+
+textarea {
+    width: 100%;
+    padding: 10px var(--space-2);
+    border: 1.5px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--color-accent);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Botón de acción: fondo navy de la marca (blanco sobre navy: contraste
+   AA sobradísimo). El petróleo no se usa en botones: su lugar es el precio. */
+.button {
+    display: inline-block;
+    margin-top: var(--space-3);
+    padding: 10px 18px;
+    background: var(--color-navy);
+    color: #ffffff;
+    border: 0;
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s;
+}
+
+.button:hover {
+    background: var(--color-navy-soft);
+}
+
+.button:active {
+    transform: translateY(1px);
+}
+
+/* Variantes semánticas: secundario (acero) y peligro (rojo). */
+.button-secondary {
+    background: #4d5e70;
+}
+
+.button-secondary:hover {
+    background: #3b4a59;
+}
+
+.button-danger {
+    background: var(--color-danger);
+}
+
+.button-danger:hover {
+    background: #760016;
+}
+
+/* Errores de campo: texto rojo, sin banner (quedaría pesado abajo de
+   cada campo). Los mensajes de página van en banners, más abajo. */
+.error {
+    color: var(--color-danger);
+    margin: var(--space-1) 0 0;
+    font-weight: 600;
+    font-size: var(--text-sm);
+}
+
+.notice {
+    color: var(--color-ok);
+    margin: var(--space-2) 0;
+    font-weight: 600;
+}
+
+.muted {
+    color: var(--color-ink-soft);
+}
+
+/* ============================================================
+   6. Detalle de la moto: carrusel y datos.
+   ============================================================ */
+/* Carrusel: una foto a la vez con ◀ ▶. Sin la clase .js todo queda
+   visible apilado y los botones ocultos: nada se pierde sin JavaScript. */
 .gallery {
     position: relative;
-    margin: 1rem 0;
+    margin: var(--space-3) 0;
 }
 
 .gallery-photo {
     display: block;
     width: 100%;
     height: auto;
-    border-radius: 6px;
-    background: #e9edf2;
+    border-radius: var(--radius-sm);
+    background: var(--color-line);
 }
 
 .gallery.js .gallery-photo {
@@ -231,27 +464,27 @@ input {
     height: 2.75rem;
     border: 0;
     border-radius: 50%;
-    background: rgba(16, 36, 62, 0.65);
+    background: rgba(16, 36, 62, 0.7);
     color: #ffffff;
     font-size: 1.1rem;
     cursor: pointer;
 }
 
 .gallery.js .gallery-nav:hover {
-    background: rgba(16, 36, 62, 0.9);
+    background: var(--color-navy);
 }
 
 .gallery-prev {
-    left: 0.5rem;
+    left: var(--space-2);
 }
 
 .gallery-next {
-    right: 0.5rem;
+    right: var(--space-2);
 }
 
 .gallery-status {
     display: none;
-    margin: 0.5rem 0 0;
+    margin: var(--space-2) 0 0;
     text-align: center;
 }
 
@@ -260,172 +493,50 @@ input {
 }
 
 .bike-description {
-    white-space: pre-wrap; /* respeta los saltos de línea de la descripción */
+    white-space: pre-wrap; /* respeta los saltos de línea del usuario */
     overflow-wrap: anywhere; /* una URL pegada no desborda la pantalla */
 }
 
 .bike-meta {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 0.25rem 1rem;
-    margin: 1rem 0;
+    gap: var(--space-1) var(--space-3);
+    margin: var(--space-3) 0;
 }
 
 .bike-meta dt {
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .bike-meta dd {
     margin: 0;
 }
 
-/* Etapa 4: gestión del dueño — mis publicaciones, acciones y edición. */
-
+/* ============================================================
+   7. Gestión del dueño: acciones y recuadros de fotos.
+   ============================================================ */
 /* Fila de acciones bajo cada tarjeta de "Mis publicaciones". */
 .owner-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: var(--space-2);
     align-items: center;
-    margin: -0.25rem 0 1rem;
+    margin: calc(-1 * var(--space-1)) 0 var(--space-4);
 }
 
-/* Los formularios de acción son botones sueltos: sin margen propio. */
 .owner-actions form,
 .owner-actions .button {
     margin: 0;
 }
 
-/* Variantes de color para distinguir acciones sin cambiar el look. */
-.button-secondary {
-    background: #6b7c8f;
-}
-
-.button-danger {
-    background: #b00020;
-}
-
-/* Recuadros CON foto ya cargada (edición): la foto llena el recuadros y
-   el control queda sobre ella (✕) o a su pie (reemplazar). */
-.photo-slot.is-filled {
-    position: relative;
-    display: block;
-    padding: 0;
-    border-style: solid;
-    border-color: #d5dde6;
-    background: #ffffff;
-    cursor: default;
-}
-
-.photo-slot-photo {
-    display: block;
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-}
-
-/* ✕ de quitar: círculo rojo sobre la esquina de la foto. */
-.slot-remove {
-    position: absolute;
-    top: 0.4rem;
-    right: 0.4rem;
-    width: 2rem;
-    height: 2rem;
-    border: 0;
-    border-radius: 50%;
-    background: rgba(176, 0, 32, 0.9);
-    color: #ffffff;
-    font-size: 1rem;
-    line-height: 1;
-    cursor: pointer;
-}
-
-/* Reemplazar la única foto (RF-6): con JS, hacer click en la foto abre el
-   selector (el recuadros es un <label> del archivo, que queda oculto) y el
-   archivo se reemplaza solo apenas se elige. Sin JS se ve el archivo chiquito
-   y el botón "Reemplazar": el mismo envío, sólo que manual. La clase .js la
-   agrega photos.js al cargar, como en el carrusel. */
-.slot-swap {
-    display: none;
-}
-
-.js .slot-swap {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    color: #ffffff;
-    text-align: center;
-    cursor: pointer;
-}
-
-.js .slot-swap-hint {
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.2;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-    opacity: 0;
-    transition: opacity 0.15s;
-}
-
-/* La pista "Cambiar foto" aparece al pasar el mouse o al enfocar el
-   archivo con el Teclado (llega al recuadro oculto con Tab). */
-.js .photo-slot.is-filled:hover .slot-swap,
-.js .photo-slot.is-filled:focus-within .slot-swap {
-    background: rgba(0, 0, 0, 0.4);
-}
-
-.js .photo-slot.is-filled:hover .slot-swap-hint,
-.js .photo-slot.is-filled:focus-within .slot-swap-hint {
-    opacity: 1;
-}
-
-/* Sin JS: el archivo se ve chiquito para poder elegirlo a mano. */
-.slot-swap-input {
-    display: block;
-    width: calc(100% - 1rem);
-    margin: 0.5rem 0.5rem 0;
-    font-size: 0.75rem;
-}
-
-/* Con JS: el archivo queda invisible (lo abre el click en la foto). */
-.js .slot-swap-input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-/* Sin JS: botón visible que envía el reemplazo; con JS queda escondido
-   porque photos.js lo aprieta solo al elegir el archivo. */
-.slot-swap-button {
-    display: block;
-    width: calc(100% - 1rem);
-    margin: 0.5rem;
-    padding: 0.4rem;
-}
-
-.js .slot-swap-button {
-    display: none;
-}
-
 /* Recuadros de fotos (RF-3, RF-6): uno por foto, clicables.
-   Cada recuadro envuelve un input de UNA sola foto (así todos los
-   navegadores se comportan igual) y photos.js le pone la vista previa:
-   sin JS se ve el ícono y el recuadro igual selecciona y envía. */
+   Cada recuadro envuelve un input de UNA sola foto y photos.js le pone
+   la vista previa; sin JS se ve el ícono y el recuadro igual funciona. */
 .photo-slots {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-    margin: 0.5rem 0 1rem;
+    gap: var(--space-3);
+    margin: var(--space-2) 0 var(--space-3);
 }
 
 .photo-slot {
@@ -434,27 +545,29 @@ input {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.25rem;
+    gap: var(--space-1);
     min-height: 7rem;
     margin: 0;
-    padding: 0.5rem;
-    border: 2px dashed #b9c4d0;
-    border-radius: 8px;
-    background: #f7f9fb;
-    color: #666666;
+    padding: var(--space-2);
+    border: 2px dashed var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-ink-soft);
+    font-weight: 400;
     text-align: center;
     cursor: pointer;
     overflow: hidden;
+    transition: border-color 0.15s, color 0.15s;
 }
 
 .photo-slot:hover,
 .photo-slot:focus-within {
-    border-color: #1d6fd1;
-    color: #1d6fd1;
+    border-color: var(--color-accent);
+    color: var(--color-accent-strong);
 }
 
-/* El input queda invisible y estira sobre todo el recuadro: cualquier click
-   dentro del casillero abre el selector de archivos. */
+/* El input invisible estira sobre todo el recuadro: cualquier click
+   dentro abre el selector de archivos. */
 .photo-slot-input {
     position: absolute;
     top: 0;
@@ -489,41 +602,149 @@ input {
     display: none;
 }
 
-/* Etapa 5: pantallas chicas y textos difíciles (RNF-2). Las grillas y las
-   imágenes ya son fluidas de las etapas anteriores; esto cubre lo que sigue
-   rompiendo en un celular. */
-
-/* Títulos y encabezados con palabras muy largas (una URL como título, por
-   ejemplo): se parten en vez de forzar desplazamiento horizontal. */
-h1,
-h2 {
-    overflow-wrap: break-word;
+/* Recuadros CON foto ya cargada (edición): la foto llena el recuadros y
+   el control queda sobre ella (✕) o a su pie (reemplazar). */
+.photo-slot.is-filled {
+    position: relative;
+    display: block;
+    padding: 0;
+    border-style: solid;
+    border-color: var(--color-line);
+    background: var(--color-surface);
+    cursor: default;
 }
 
-/* Pie de página: centrado, discreto y con el mismo ancho que el contenido. */
-.site-footer {
-    max-width: 640px;
-    margin: 2rem auto 0;
-    padding: 0 1rem 2rem;
-    color: #666666;
-    font-size: 0.85rem;
+.photo-slot-photo {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+/* ✕ de quitar: círculo rojo sobre la esquina de la foto. */
+.slot-remove {
+    position: absolute;
+    top: var(--space-1);
+    right: var(--space-1);
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(152, 0, 28, 0.92);
+    color: #ffffff;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.slot-remove:hover {
+    background: var(--color-danger);
+}
+
+/* Reemplazar la única foto (RF-6): con JS, hacer click en la foto abre
+   el selector y el archivo se envía solo apenas se elige; sin JS se ve el
+   archivo chiquito y el botón. La clase .js la agrega photos.js. */
+.slot-swap {
+    display: none;
+}
+
+.js .slot-swap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: #ffffff;
     text-align: center;
+    cursor: pointer;
 }
 
-/* Celulares (hasta 480px): la navegación del encabezado pasa a una segunda
-   fila en vez de apretarse, y el ✕ de quitar foto crece para alcanzarse
-   con el dedo. */
-@media (max-width: 480px) {
-    .site-header {
-        flex-wrap: wrap;
-    }
+.js .slot-swap-hint {
+    font-size: var(--text-base);
+    font-weight: 700;
+    line-height: 1.2;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
 
-    .site-nav {
-        width: 100%;
-        flex-wrap: wrap;
-        row-gap: 0.25rem;
-    }
+/* La pista "Cambiar foto" aparece al pasar el mouse o al enfocar el
+   archivo con el Teclado (llega al recuadro oculto con Tab). */
+.js .photo-slot.is-filled:hover .slot-swap,
+.js .photo-slot.is-filled:focus-within .slot-swap {
+    background: rgba(0, 0, 0, 0.4);
+}
 
+.js .photo-slot.is-filled:hover .slot-swap-hint,
+.js .photo-slot.is-filled:focus-within .slot-swap-hint {
+    opacity: 1;
+}
+
+/* Sin JS: el archivo se ve chiquito para poder elegirlo a mano. */
+.slot-swap-input {
+    display: block;
+    width: calc(100% - var(--space-3));
+    margin: var(--space-2) var(--space-2) 0;
+    font-size: var(--text-sm);
+}
+
+/* Con JS: el archivo queda invisible (lo abre el click en la foto). */
+.js .slot-swap-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Sin JS: botón visible que envía el reemplazo; con JS queda escondido
+   porque photos.js lo aprieta solo al elegir el archivo. */
+.slot-swap-button {
+    display: block;
+    width: calc(100% - var(--space-3));
+    margin: var(--space-2);
+    padding: var(--space-2);
+}
+
+.js .slot-swap-button {
+    display: none;
+}
+
+/* ============================================================
+   8. Mensajes de página (flash): banner con fondo y barra de color.
+   ============================================================ */
+.flash {
+    max-width: 760px;
+    margin: var(--space-3) auto 0;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    border-left: 4px solid;
+    font-weight: 600;
+}
+
+.flash-error {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+
+.flash-notice {
+    background: var(--color-ok-bg);
+    color: var(--color-ok);
+    border-color: var(--color-ok);
+}
+
+/* ============================================================
+   9. Celulares (< 640px): ajustes puntuales.
+   ============================================================ */
+/* El ✕ de quitar foto crece para alcanzarse con el dedo. */
+@media (max-width: 639px) {
     .slot-remove {
         width: 2.5rem;
         height: 2.5rem;

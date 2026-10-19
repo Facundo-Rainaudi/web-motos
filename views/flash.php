@@ -5,5 +5,8 @@
 
 ?>
 <?php foreach (flash_pull() as $flash): ?>
-    <p class="<?= $flash['type'] === 'error' ? 'error' : 'notice' ?>"><?= htmlspecialchars($flash['message']) ?></p>
+    <!-- Banner arriba de la página: fondo suave + barra de color según el
+         tipo (ver docs/design.md). La clase .error/.notice de campo no se
+         toca: abajo de cada input sigue siendo texto rojo/verde. -->
+    <p class="flash <?= $flash['type'] === 'error' ? 'flash-error' : 'flash-notice' ?>"><?= htmlspecialchars($flash['message']) ?></p>
 <?php endforeach; ?>

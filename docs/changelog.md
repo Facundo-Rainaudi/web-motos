@@ -1,6 +1,62 @@
 # Changelog
 
+## 2026-10-19
+- **Bug corregido: la foto elegida no se guardaba al apretar "Guardar
+  cambios" en la edición** (reportado por el usuario): la página tenía dos
+  formularios (fotos y datos) y los archivos de los recuadros viajaban en uno
+  distinto del botón "Guardar cambios", que además no procesaba `$_FILES` —
+  la foto se descartaba en silencio. Arreglo: **un solo `<form>`** con un
+  único "Guardar cambios" que guarda datos y fotos juntos (cupo de 4, hash,
+  tipo/peso/medidas, rechazos por flash, igual que al publicar). ✕ y
+  "Reemplazar" pasaron a ser botones con `name` dentro de ese mismo form (sin
+  formularios anidados); también se aplica el reemplazo elegido en el
+  recuadros de foto única si se guarda sin apretar "Reemplazar". Se eliminó
+  el botón "Agregar fotos" (un solo modelo mental) y `views/bike_form.php`
+  ganó `$inlineForm` (sólo campos, sin `<form>` ni csrf, cuando la página ya
+  abrió el form). Verificado: `php -l` limpio; 12 flujos por curl en verde
+  (incluye datos inválidos que no guardan nada, repetidas, CSRF y cupo de 4);
+  suite **91 tests /219 aserciones**; la base de desarrollo quedó como estaba
+  (29 motos, 6 archivos en uploads — las motos descartables de la
+  verificación se borraron con la propia app). Decisión en `docs/decisions.md`
+  (la de "dos formularios" de la etapa 4 queda superada). La regresión queda
+  cubierta por este checklist curl, porque la suite no tiene arnés HTTP.
+- **Acento ámbar rechazado y reemplazado por petróleo** (feedback del
+  usuario; guía de la skill `frontend-design`): el ámbar cálido no
+  combinaba con la paleta fría del sitio (y es, además, un "tell" de
+  diseño genérico). Ahora el navy `#10243e` es el color de acción completo
+  (header, botones, títulos, enlaces) y el único acento es el **petróleo
+  `#0f6b70`**, reservado a precios, foco y hovers.
+- **Superficies planas**: se quitaron las sombras de `.card`/`.bike-card`
+  y el hover de elevación de las tarjetas (más señales de template
+  genérico); ahora es blanco + borde hairline y sólo el enlace de la
+  tarjeta reacciona al mouse. Movimiento solo como respuesta de botones.
+  Sin tocar HTML ni lógica. Verificado: llaves balanceadas, cero variables
+  sin definir (ni sobrantes), las 5 pantallas renderizando con la semilla
+  (20 tarjetas en la vitrina). Sistema actualizado en `docs/design.md`.
+- **Skill `frontend-design` instalada** (npx skills add desde
+  `anthropics/skills`): guía de dirección estética intencional; queda en
+  `.agents/skills/frontend-design/` junto con `skills-lock.json`.
+
 ## 2026-10-17
+- **Base del rediseño visual ("showroom deportivo", pedido del usuario con
+  la skill web-design)**: `public/css/style.css` reescrito con **sistema de
+  diseño propio** —tokens en `:root` (paleta, escala de espaciado 4/8/16/24/
+  32, tipografía única con pesos 400/700/800, radios y sombras)— y
+  mobile-first (reglas base a 375 px, ampliaciones en `@media (min-width)`).
+  Sin tocar lógica: mismo HTML y mismas clases; solo `views/flash.php`
+  cambió para que los mensajes de página sean **banners** (`.flash-error` /
+  `.flash-notice`, fondo suave + barra lateral) en vez de texto suelto.
+  - Acento ámbar en dos pasos (puro para precios grandes, oscuro para
+    botones/enlaces con blanco) por contraste AA; header azul noche con
+    punto ámbar en la marca; tarjetas con borde, sombra al hover y precio
+    protagonista; tarjetas **vendidas** con la foto atenuada (`:has`);
+    campos con foco ámbar visible; botones con variantes semánticas
+    (secundario/peligro) y estados hover/active.
+  - Verificado: `php -l views/flash.php` limpio, llaves del CSS balanceadas
+    (98/98), los 5 selectores funcionales del carrusel/recuadros intactos,
+    las 5 pantallas en 200 y el flash renderizando como banner.
+  - Sistema documentado en `docs/design.md` (tokens, decisiones y reglas
+    para estilos nuevos).
 - **Etapa 6 — Cierre: recorrido final de RF-1 a RF-10, todo en verde**.
   `php -l` sobre los **38 archivos PHP** del proyecto sin errores y suite en
   verde (**91 tests, 219 aserciones**). Recorrido por curl punto por punto

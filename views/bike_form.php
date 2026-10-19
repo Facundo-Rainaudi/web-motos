@@ -3,18 +3,24 @@
 // Compartido entre publicar (etapa 2) y editar (tarea 4.2).
 // Recibe: $action (a dónde se envía), $errors (errores por campo),
 // $old (lo que el usuario había tipeado), $submitLabel (texto del botón),
-// $submitName (nombre del botón, opcional: la edición de fotos y la de
-// datos llegan al mismo URL y el servidor las distingue por este nombre),
+// $submitName (nombre del botón, opcional: llegan varios botones a la misma
+// URL y el servidor los distingue por este nombre),
 // $photosOptional (en edición con recuadros propios: la foto nueva es
-// opcional) y $photoSlots (cuántos recuadros vacíos mostrar: 4 al
-// publicar, 0 si las fotos se manejan en su propio formulario).
+// opcional), $photoSlots (cuántos recuadros vacíos mostrar: 4 al publicar,
+// 0 si las fotos se manejan en su propio bloque) y $inlineForm (true = imprimir
+// SÓLO los campos y el botón, sin <form> ni csrf, porque van dentro del
+// formulario que ya abrió la página — así edit-bike.php junta fotos y datos
+// en UN solo formulario, bug del 2026-10-19).
 // Los errores y los valores se imprimen siempre con htmlspecialchars().
 
 $photosOptional = $photosOptional ?? false;
 $photoSlots = $photoSlots ?? 4;
+$inlineForm = $inlineForm ?? false;
 ?>
+<?php if (!$inlineForm): ?>
 <form method="post" action="<?= htmlspecialchars($action) ?>" enctype="multipart/form-data" novalidate>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token()) ?>">
+<?php endif; ?>
 
     <label for="title">Título (máximo 80 caracteres)</label>
     <input type="text" id="title" name="title" maxlength="80" value="<?= htmlspecialchars($old['title'] ?? '') ?>" required>
@@ -96,4 +102,6 @@ $photoSlots = $photoSlots ?? 4;
     <?php endforeach; ?>
 
     <button type="submit" class="button"<?php if (isset($submitName)): ?> name="<?= htmlspecialchars($submitName) ?>"<?php endif; ?>><?= htmlspecialchars($submitLabel) ?></button>
+<?php if (!$inlineForm): ?>
 </form>
+<?php endif; ?>

@@ -31,7 +31,9 @@
   clave foránea de bikes.user_id y mostraba "No se pudo guardar la
   publicación"). Decisión tomada tras encontrarlo probando la etapa 4.
 - **Edición con una sola grilla y dos formularios** (segundo pedido del
-  usuario): los 4 recuadros conviven en una grilla —rellenos con la foto
+  usuario) — **SUPERADA el 2026-10-19** por la decisión siguiente: si el
+  usuario elegía una foto y apretaba "Guardar cambios", el archivo no se
+  enviaba. Los 4 recuadros conviven en una grilla —rellenos con la foto
   publicada y su control (✕ quitar, o campo + "Reemplazar" si es la única)—
   y los vacíos agregan fotos. Como HTML no permite formularios anidados, la
   página tiene dos `<form>` separados (fotos y datos) que apuntan al mismo
@@ -39,6 +41,22 @@
   `replace_photo_id`, `save_data`) y el servidor distingue cuál se presionó,
   con un único chequeo de CSRF para todos. Las fotos se agregan con su propio
   botón "Agregar fotos", independiente de los datos.
+- **Edición con UN solo formulario** (arreglo del bug "elegí una foto y
+  apreté Guardar, no se guardó", reportado 2026-10-19): la grilla de fotos y
+  los campos de datos viajan juntos en un único `<form>` y un único botón
+  "Guardar cambios" guarda datos y fotos elegidas de una (mismas reglas que
+  al publicar: cupo de 4, repetidas por hash, tipo/peso/medidas; rechazos y
+  resultado por flash, patrón PRG). El motivo de los dos formularios en la
+  etapa 4 (HTML no permite formularios anidados) ya no aplica: ✕,
+  "Reemplazar" y "Guardar" son botones con `name` DENTRO del mismo form y el
+  servidor los distingue por el nombre, con un único chequeo de CSRF. El
+  recuadros de foto única también aplica su archivo si se elige y se guarda
+  sin apretar "Reemplazar". `views/bike_form.php` aprendió `$inlineForm`
+  (imprime sólo los campos y el botón, sin `<form>` ni csrf, cuando la página
+  ya abrió el form). Botón "Agregar fotos" eliminado: un solo modelo mental.
+  Regresión verificada con curl en 12 flujos (agregar con Guardar, sólo
+  datos, datos inválidos que no guardan nada, repetida, ✕, Reemplazar,
+  reemplazo vía Guardar, CSRF, cupo de 4) y la suite completa en verde.
 - **Reemplazar la única foto con un click en la imagen** (tercer pedido del
   usuario, ajuste del rediseño): el recuadros de la foto única ya no muestra
   el archivo nativo ni el botón a la vista; el recuadros entero es un

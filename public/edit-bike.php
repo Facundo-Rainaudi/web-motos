@@ -1,13 +1,17 @@
 <?php
 // public/edit-bike.php — edición de una publicación propia (RF-6, H6).
 //
-// Dos formularios que apuntan a esta misma página y se distinguen por el
+// UN SOLO formulario que apuntan a esta misma página y se distingue por el
 // botón que se presiona:
-// 1) FOTOS: UNA grilla con los 4 recuadros. Los que ya tienen foto se ven
-//    rellenos con su control (✕ para quitar, o campo + "Reemplazar" cuando
-//    es la única); los vacíos son los pickers para agregar fotos nuevas.
-// 2) DATOS: reutiliza views/bike_form.php con los MISMOS validadores que al
-//    publicar (RF-6), sin la sección de fotos ($photoSlots = 0).
+// - "Guardar cambios" (save_data): guarda juntos los datos del formulario,
+//   las fotos elegidas en los recuadros vacíos y el reemplazo elegido en el
+//   recuadro de foto única. Antes eran dos formularios separados y la foto
+//   elegida se perdía en silencio si el usuario apretaba "Guardar" (bug
+//   reportado 2026-10-19; ver docs/decisions.md).
+// - ✕ (remove_photo_id) y "Reemplazar" (replace_photo_id): acciones sobre UNA
+//   foto concreta; son botones con name/value dentro del MISMO formulario (no
+//   hay formularios anidados) y el servidor las distingue por el nombre.
+// Los datos de views/bike_form.php viajan dentro de este form ($inlineForm).
 // La verificación de dueño es SIEMPRE en el servidor (RF-10): aunque alguien
 // tipee la URL a mano, si la moto no es suya no llega ni a los formularios.
 //
@@ -129,7 +133,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // --- Guardar los datos (botón "Guardar cambios" del formulario de datos) ---
+    // --- Guardar TODO: los datos + las fotos elegidas en los recuadros ---
+    // Es el único botón "Guardar cambios": los recuadros vacíos (photos[]) y
+    // los campos viajan en el MISMO formulario, así que este guardado procesa
+    // ambos de una. (Arreglo del bug reportado 2026-10-19: la foto elegida se
+    // perdía en silencio porque los archivos vivían en otro formulario.)
     if (isset($_POST['save_data'])) {
         $raw = [
             'title' => (string) ($_POST['title'] ?? ''),
@@ -173,62 +181,110 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'description' => $description['value'],
             ]);
 
-            flash_set('notice', 'Cambios guardados.');
-            header('Location: /bike.php?id=' . $bikeId);
-            exit;
-        }
+            // El banner de resultado se arma en orden: primero la base y
+            // después lo que cada bloque (reemplazo / fotos nuevas) agregue.
+            $flashType = 'notice';
+            $message = 'Cambios guardados.';
 
-        // Con errores se re-renderiza abajo, conservando lo tipeado.
-    } else {
-        // --- Agregar fotos nuevas a los recuadros vacíos ---
-        $batch = photo_batch($_FILES['photos'] ?? [], 4 - count($photos), $existingHashes());
+            // --- Recuadros de UNA foto: reemplazo elegido sin apretar
+            // "Reemplazar" (se aplica al guardar, mismo criterio). ---
+            if (count($photos) === 1 && ($_FILES['photo']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                $swapResult = validate_photo($_FILES['photo']);
 
-        if ($batch['valid'] === [] && $batch['errors'] === []) {
-            flash_set('error', 'Elegí al menos una foto para agregar.');
-        } elseif ($batch['errors'] !== []) {
-            flash_set('error', 'No se pudieron agregar las fotos: ' . implode(' ', $batch['errors']));
-        } else {
-            // Se mueven los archivos y se agregan las filas al final de la
-            // numeración; si algo falla, se borran los archivos movidos.
-            $savedFiles = [];
-
-            foreach ($batch['valid'] as $entry) {
-                $saved = save_photo($entry);
-
-                if (!$saved['ok']) {
-                    break;
+                if ($swapResult['ok'] && in_array($swapResult['sha1'], $existingHashes((int) $photos[0]['id']), true)) {
+                    $swapResult = ['ok' => false, 'error' => 'La foto es repetida: ya está guardada en la publicación.'];
                 }
 
-                $savedFiles[] = $saved['filename'];
+                if (!$swapResult['ok']) {
+                    $flashType = 'error';
+                    $message .= ' Foto de reemplazo rechazada: ' . $swapResult['error'];
+                } else {
+                    $savedSwap = save_photo($swapResult);
+
+                    if (!$savedSwap['ok']) {
+                        $flashType = 'error';
+                        $message .= ' No se pudo reemplazar la foto: ' . $savedSwap['error'];
+                    } else {
+                        $replaced = replace_photo_of_bike($db, $bikeId, (int) $photos[0]['id'], $savedSwap['filename']);
+
+                        if ($replaced['ok']) {
+                            delete_photo_file($replaced['filename']);
+                            $message .= ' Foto reemplazada.';
+                            // La grilla cambió: se refresca para el cupo de
+                            // las fotos nuevas de abajo.
+                            $photos = list_photos($db, $bikeId);
+                        } else {
+                            delete_photo_file($savedSwap['filename']);
+                            $flashType = 'error';
+                            $message .= ' No se pudo reemplazar la foto: ' . $replaced['error'];
+                        }
+                    }
+                }
             }
 
-            if (count($savedFiles) === count($batch['valid'])) {
-                try {
-                    $nextPosition = next_photo_position($db, $bikeId);
+            // --- Fotos nuevas elegidas en los recuadros (si las hay) ---
+            // Mismas reglas que al publicar (RF-6): cupo de 4 en total,
+            // repetidas contra las ya guardadas por hash y tipo/peso/
+            // medidas. Si no se eligió ninguna foto, sólo se guardan datos.
+            $batch = photo_batch($_FILES['photos'] ?? [], 4 - count($photos), $existingHashes());
 
-                    foreach ($savedFiles as $i => $filename) {
-                        insert_photo($db, $bikeId, $filename, $nextPosition + $i);
+            if ($batch['valid'] !== []) {
+                // Se mueven los archivos y se agregan las filas al final de
+                // la numeración; si algo falla, se borran los archivos.
+                $savedFiles = [];
+
+                foreach ($batch['valid'] as $entry) {
+                    $saved = save_photo($entry);
+
+                    if (!$saved['ok']) {
+                        break;
                     }
 
-                    flash_set('notice', count($savedFiles) === 1 ? 'Foto agregada.' : 'Fotos agregadas.');
-                } catch (Throwable $e) {
+                    $savedFiles[] = $saved['filename'];
+                }
+
+                if (count($savedFiles) === count($batch['valid'])) {
+                    try {
+                        $nextPosition = next_photo_position($db, $bikeId);
+
+                        foreach ($savedFiles as $i => $filename) {
+                            insert_photo($db, $bikeId, $filename, $nextPosition + $i);
+                        }
+
+                        $message .= ' ' . (count($savedFiles) === 1 ? 'Foto agregada.' : 'Fotos agregadas.');
+                    } catch (Throwable $e) {
+                        foreach ($savedFiles as $filename) {
+                            delete_photo_file($filename);
+                        }
+
+                        $flashType = 'error';
+                        $message = 'Los datos se guardaron, pero no se pudieron agregar las fotos. Probá de nuevo.';
+                    }
+                } else {
                     foreach ($savedFiles as $filename) {
                         delete_photo_file($filename);
                     }
 
-                    flash_set('error', 'No se pudieron agregar las fotos. Probá de nuevo.');
+                    $flashType = 'error';
+                    $message = 'Los datos se guardaron, pero no se pudo guardar la foto en el servidor. Probá de nuevo.';
                 }
-            } else {
-                foreach ($savedFiles as $filename) {
-                    delete_photo_file($filename);
-                }
-
-                flash_set('error', 'No se pudo guardar la foto en el servidor. Probá de nuevo.');
             }
+
+            // Fotos rechazadas (tipo/peso/medidas/repetida): como al
+            // publicar, el motivo viaja por flash junto con el resultado.
+            if ($batch['errors'] !== []) {
+                $flashType = 'error';
+                $message .= ' Fotos rechazadas: ' . implode(' ', $batch['errors']);
+            }
+
+            flash_set($flashType, $message);
+            header('Location: /bike.php?id=' . $bikeId);
+            exit;
         }
 
-        header('Location: /edit-bike.php?id=' . $bikeId);
-        exit;
+        // Con errores de datos se re-renderiza abajo, conservando lo tipeado.
+        // Las fotos elegidas en los recuadros se pierden en este caso: un
+        // input de archivo no se puede repoblar (igual que al publicar).
     }
 }
 
@@ -240,17 +296,23 @@ require __DIR__ . '/../views/header.php';
 ?>
 <section class="card">
     <h1>Editar publicación</h1>
-    <p class="muted">Los cambios de fotos se aplican al tocar su botón; los de datos, con "Guardar cambios". Ninguno mueve la moto de lugar en el feed.</p>
+    <p class="muted">Elegí fotos en los recuadros vacíos y corregí los datos: todo se guarda junto con "Guardar cambios". Ningún cambio mueve la moto de lugar en el feed.</p>
 
-    <h2>Fotos (<?= count($photos) ?> de 4)</h2>
-    <!-- Formulario de fotos: una grilla con los 4 recuadros. Los rellenos
-         tienen su control (✕ quitar; o campo + botón Reemplazar cuando es
-         la única foto, porque no se puede dejar en cero, RF-6) y los vacíos
-         son los pickers para agregar. Cada acción es UN botón con nombre:
-         el servidor distingue cuál se presionó. -->
-    <form method="post" action="/edit-bike.php?id=<?= $bikeId ?>" enctype="multipart/form-data">
+    <!-- Un SOLO formulario: la grilla de fotos y los datos viajan juntos,
+         así "Guardar cambios" guarda ambos de una (arreglo del bug en que
+         la foto elegida se perdía porque vivía en otro formulario). Las
+         acciones sobre fotos concretas (✕ y Reemplazar) son botones con
+         name/value DENTRO de este mismo form: no hay formularios anidados
+         y el servidor distingue cuál se presionó por el nombre. -->
+    <form method="post" action="/edit-bike.php?id=<?= $bikeId ?>" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token()) ?>">
         <input type="hidden" name="bike_id" value="<?= $bikeId ?>">
+
+        <h2>Fotos (<?= count($photos) ?> de 4)</h2>
+        <!-- Grilla con los 4 recuadros. Los rellenos tienen su control
+             (✕ quitar; o campo + botón Reemplazar cuando es la única foto,
+             porque no se puede dejar en cero, RF-6) y los vacíos son los
+             pickers para agregar fotos nuevas. -->
 
         <div class="photo-slots">
             <?php foreach ($photos as $photo): ?>
@@ -285,7 +347,8 @@ require __DIR__ . '/../views/header.php';
             <?php for ($slot = count($photos); $slot < 4; $slot++): ?>
                 <!-- Recuadro vacío: picker de UNA foto (igual en todos los
                      navegadores); photos.js agrega la vista previa y sin
-                     JS el recuadro igual selecciona y envía. -->
+                     JS el recuadro igual selecciona y envía. Su archivo se
+                     guarda junto con los datos, con "Guardar cambios". -->
                 <label class="photo-slot">
                     <input type="file" class="photo-slot-input" name="photos[]"
                            accept="image/jpeg,image/png,image/webp"
@@ -300,9 +363,8 @@ require __DIR__ . '/../views/header.php';
         <?php if (count($photos) < 4): ?>
             <script src="/js/photos.js" defer></script>
         <?php endif; ?>
-    </form>
 
-    <h2>Datos</h2>
+        <h2>Datos</h2>
     <?php if (isset($errors['_form'])): ?>
         <p class="error"><?= htmlspecialchars($errors['_form']) ?></p>
     <?php endif; ?>
@@ -310,9 +372,13 @@ require __DIR__ . '/../views/header.php';
     $action = '/edit-bike.php?id=' . $bikeId;
     $submitLabel = 'Guardar cambios';
     $submitName = 'save_data';
-    // Las fotos se manejan en su propio formulario de arriba.
+    // Las fotos se manejan en la grilla de arriba: $photoSlots = 0 evita
+    // repetir recuadros y $inlineForm hace que bike_form imprima sólo los
+    // campos, dentro de este mismo <form>.
     $photoSlots = 0;
+    $inlineForm = true;
     require __DIR__ . '/../views/bike_form.php';
     ?>
+    </form>
 </section>
 <?php require __DIR__ . '/../views/footer.php'; ?>
