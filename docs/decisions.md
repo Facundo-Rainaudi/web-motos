@@ -1,5 +1,37 @@
 # Decisiones de diseño
 
+## 2026-10-20 — Spec 02: búsqueda y filtros (decisiones del borrador)
+- **Alcance: solo búsqueda y filtros** (elegido por el usuario entre las
+  opciones relevadas): la spec 02 cierra la promesa de AGENTS.md y lo que la
+  spec 01 dejó "fuera de alcance"; el botón de WhatsApp queda para una spec
+  posterior.
+- **Filtro de disponibilidad incluido, con "todas" por defecto** (pedido del
+  usuario): sin elegirlo, la vitrina se comporta exactamente como el RF-4
+  (vendidas visibles con su etiqueta).
+- **Orden del listado: solo por más nuevo** (decisión del usuario; se
+  descarta la propuesta de ordenar por precio): el orden por fecha obligaría
+  a paginar por clave sobre la tupla (precio, id) para no repetir ni perder
+  motos con el scroll; al no interesar el orden alternativo, la paginación
+  actual (por id) queda intacta.
+- **Contador de resultados visible** solo con selección activa ("N motos
+  encontradas"), junto con el botón "Limpiar filtros".
+- **Índices para los filtros** en bikes (condition, currency, price, status)
+  agregados a sql/schema.sql; en desarrollo se aplican con ALTER porque
+  recargar el esquema vaciaría las tablas con los datos de prueba.
+- **Parseo puro en `src/filters.php`** (plan de la spec 02): una función
+  sin BD ni superglobals valida cada parámetro por separado con lista blanca
+  (los inválidos se descartan uno a uno); así toda la lógica de parámetros es
+  testeable sin servidor. Se reutiliza `validate_price()` para min/max, con
+  las mismas reglas que al publicar.
+- **`list_bikes_feed()` gana filtros opcionales** en vez de duplicarse: con
+  `$filters = []` el SQL es el actual (el RF-4 no cambia ni de comportamiento
+  ni de tests) y `index.php`/`api/bikes.php` comparten un único camino.
+- **Comodines `%` y `_` eliminados del texto de búsqueda al parsear**: no son
+  texto que un usuario busque y así el LIKE no necesita cláusula ESCAPE.
+- **Barra de filtros como formulario GET sin JS obligatorio**: Aplicar es un
+  submit normal (funciona con el JS apagado); el JS solo mejora el reenvío en
+  el scroll. "Limpiar filtros" es un link a `/` sin parámetros.
+
 ## 2026-10-17 — Recuadros de fotos: decisiones de implementación
 - **Un input de archivo por recuadro** (pedido del usuario; RF-3 y RF-6 sin
   cambios): el formulario anterior tenía un único input con `multiple`, que

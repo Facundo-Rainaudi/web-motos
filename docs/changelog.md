@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-20
+- **Spec 02 aprobada y con plan técnico**: el usuario aprobó el borrador de
+  `specs/02-search-filters/spec.md` y se generó `plan.md` (contrato de
+  parámetros por URL, `src/filters.php` con parseo puro, `list_bikes_feed`
+  ampliada con filtros opcionales más `count_bikes_matching`, barra de filtros
+  en `views/filter_bar.php`, scroll filtrado en `api/bikes.php` + `feed.js` e
+  índices en bikes). Se completó también `tasks.md` con las 4 etapas (motor
+  de filtros → pantalla → scroll filtrado → cierre), todas pendientes.
+  Sin código todavía (constitución: primero la spec aprobada).
+
 ## 2026-10-19
 - **Bug corregido: la foto elegida no se guardaba al apretar "Guardar
   cambios" en la edición** (reportado por el usuario): la página tenía dos
