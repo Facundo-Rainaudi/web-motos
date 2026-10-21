@@ -55,8 +55,9 @@ aplicado. `min > max` descarta los dos. Valores fuera de la tabla → ignorados.
 - `filters.php` — `parse_feed_filters(array $get): array`: devuelve un array
   normalizado `['q' => ?string, 'condition' => ?string, 'currency' => ?string,
   'min' => ?string, 'max' => ?string, 'status' => ?string]` con `null` en lo
-  ausente o inválido. Reglas: `q` con `trim`, sin `%`/`_` (comodines de LIKE,
-  no son texto que un usuario busque) y recortado a 80 caracteres con
+  ausente o inválido. Reglas: `q` con `trim`, sin `%`/`_`/`\` (comodines de
+  LIKE, no son texto que un usuario busque; `\` además es el comodín por
+  defecto de MySQL) y recortado a 80 caracteres con
   `mb_substr`; precios con **`validate_price()`** del validador existente
   (misma coma/punto y mismos topes que al publicar; lo inválido → `null`);
   enums por lista blanca estricta. Función pura, sin BD ni superglobals.
@@ -115,7 +116,7 @@ usan el esquema recreado y no requieren acción manual.
 
 ## 7. Tests (Pest, constitución principio 4)
 - `tests/Unit/FiltersTest.php` (parseo puro): `q` vacío/solo espacios →
-  `null`; recorte a 80 con multibyte; `%` y `_` eliminados; `condition` y
+  `null`; recorte a 80 con multibyte; `%`, `_` y `\` eliminados; `condition` y
   `currency` fuera de lista → `null`; precios con coma y punto aceptados;
   precio no numérico, negativo o con más de 2 decimales → `null`;
   `min > max` → ambos `null`; `status=available` → `available`; cualquier

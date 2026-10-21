@@ -6,7 +6,7 @@ de cada decisión y `spec.md` para los criterios de aceptación.
 
 ## Etapa 0 — Motor de filtros (RF-11, RF-12)
 
-- [ ] **0.1 Parseo de parámetros**: `src/filters.php` con
+- [x] **0.1 Parseo de parámetros**: `src/filters.php` con
   `parse_feed_filters(array $get): array` (lista blanca por parámetro, `q`
   con trim + recorte a 80 con `mb_substr` + sin `%`/`_`, precios con
   `validate_price`, `min > max` descarta ambos) +
@@ -16,8 +16,12 @@ de cada decisión y `spec.md` para los criterios de aceptación.
   comodines eliminados, enums inválidos, precios con coma/punto y basura
   (letras, negativos, 3 decimales), rango invertido y parámetros
   desconocidos, y `composer test` queda en verde.
+  ✅ Hecho (2026-10-20): `filters.php` + `FiltersTest` (16 tests / 37
+  aserciones). Además de `%` y `_` se quita también `\` (comodín por
+  defecto del LIKE de MySQL), y los parámetros que llegan como arreglo
+  (`?q[]=x`) se ignoran.
 
-- [ ] **0.2 Listado y contador filtrados**: `list_bikes_feed()` gana
+- [x] **0.2 Listado y contador filtrados**: `list_bikes_feed()` gana
   `$filters = []` al frente (WHERE con consultas preparadas: `title LIKE
   :q OR brand LIKE :q`, condition, currency, price mín/máx, status) y
   `count_bikes_matching()` con el mismo WHERE +
@@ -28,8 +32,15 @@ de cada decisión y `spec.md` para los criterios de aceptación.
   defecto y las excluye con `status=available`, devuelve vacío sin
   coincidencias, el contador coincide con el listado, y los tests de
   `FeedTest` (RF-4) siguen en verde sin cambios.
+  ✅ Hecho (2026-10-20): helper `bikes_feed_where()` compartido entre
+  `list_bikes_feed()` y `count_bikes_matching()` (contador y listado no
+  pueden divergir); el LIKE usa dos parámetros (`:q_title`, `:q_brand`)
+  porque PDO con prepares nativos no repite nombres. `SearchTest` (12
+  tests) incluye la combinación filtros + `beforeId`. `index.php` y
+  `api/bikes.php` pasan `[]` por ahora (sin cambio de comportamiento);
+  se conectan en las etapas 1 y 2.
 
-- [ ] **0.3 Índices de filtros**: agregar a `sql/schema.sql` los KEY de bikes
+- [x] **0.3 Índices de filtros**: agregar a `sql/schema.sql` los KEY de bikes
   (`condition`, currency), (currency, price) y (status) y aplicarlos en
   desarrollo con `ALTER TABLE` directo (**nunca recargar schema.sql en
   `bike_center`**: vaciaría las tablas).
@@ -37,6 +48,10 @@ de cada decisión y `spec.md` para los criterios de aceptación.
   Hecho cuando: `SHOW INDEX FROM bikes` en desarrollo y en
   `bike_center_test` muestra los índices nuevos, los datos de desarrollo
   siguen intactos (29 motos) y la suite sigue en verde.
+  ✅ Hecho (2026-10-20): KEY agregados a `sql/schema.sql` + `ALTER TABLE`
+  en `bike_center` (verificado con `SHOW INDEX`: 29 motos intactas).
+  `bike_center_test` se recrea del esquema en cada corrida de la suite y
+  ya muestra los índices; suite en verde (119 tests / 279 aserciones).
 
 ## Etapa 1 — Pantalla de la vitrina (RF-11 a RF-13)
 

@@ -10,6 +10,24 @@
   de filtros → pantalla → scroll filtrado → cierre), todas pendientes.
   Sin código todavía (constitución: primero la spec aprobada).
 
+- **Etapas 0 de la spec 02 implementada: el motor de filtros** (tests
+  primero). Nuevo `src/filters.php` con `parse_feed_filters()`: parseo puro
+  de la URL con lista blanca por parámetro (`q` recortado a 80 sin comodines,
+  `condition`/`currency`/`status` solo con sus valores válidos, precios con
+  `validate_price` y rango invertido que descarta ambos lados). Nuevo
+  `tests/Unit/FiltersTest.php` (16 tests). `list_bikes_feed()` acepta
+  `$filters = []` opcional y comparte su WHERE con la nueva
+  `count_bikes_matching()` vía `bikes_feed_where()`; `index.php` y
+  `api/bikes.php` pasan `[]` por ahora (sin cambio de comportamiento, el
+  RF-4 sigue cubierto por `FeedTest`). Nuevo `tests/Integration/SearchTest.php`
+  (12 tests: título/marca con mayúsculas y acentos, cada filtro solo y todos
+  combinados, vendidas por defecto vs `status=available`, contador y paginado
+  con filtros). Índices de filtros agregados a `sql/schema.sql` y aplicados
+  en desarrollo con `ALTER TABLE` (29 motos intactas). Suite completa en
+  verde: 119 tests / 279 aserciones. `php -l` limpio en todos los archivos
+  tocados. La etapa 1 (barra de filtros con la skill `web-design`) sigue
+  pendiente.
+
 ## 2026-10-19
 - **Bug corregido: la foto elegida no se guardaba al apretar "Guardar
   cambios" en la edición** (reportado por el usuario): la página tenía dos

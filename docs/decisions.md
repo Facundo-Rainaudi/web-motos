@@ -26,8 +26,10 @@
 - **`list_bikes_feed()` gana filtros opcionales** en vez de duplicarse: con
   `$filters = []` el SQL es el actual (el RF-4 no cambia ni de comportamiento
   ni de tests) y `index.php`/`api/bikes.php` comparten un único camino.
-- **Comodines `%` y `_` eliminados del texto de búsqueda al parsear**: no son
-  texto que un usuario busque y así el LIKE no necesita cláusula ESCAPE.
+- **Comodines `%`, `_` y `\` eliminados del texto de búsqueda al parsear**:
+  no son texto que un usuario busque y así el LIKE no necesita cláusula
+  ESCAPE (implementado en la etapa 0; `\` además es el comodín por defecto
+  de MySQL y rompería el patrón).
 - **Barra de filtros como formulario GET sin JS obligatorio**: Aplicar es un
   submit normal (funciona con el JS apagado); el JS solo mejora el reenvío en
   el scroll. "Limpiar filtros" es un link a `/` sin parámetros.
