@@ -1,5 +1,55 @@
 # Decisiones de diseño
 
+## 2026-10-21 — Spec 02 etapa 1: pantalla de la vitrina
+
+- **El centinela del scroll no se emite con selección activa** hasta que la
+  etapa 2 haga que `feed.js` conserve los parámetros de la URL: mientras
+  tanto, un scroll con filtros pediría a `api/bikes.php` el listado COMPLETO
+  y mezclaría motos de otra selección. En la etapa 1 se muestra la primera
+  tanda filtrada server-side (mejora progresiva) y sin "ver más"; el RF-13
+  se completa recién en la etapa 2.
+- **El contador sólo consulta con selección activa**: la vitrina de siempre
+  (RF-4) no paga `count_bikes_matching()`, así su costo no cambia.
+- **Precios del filtro con `type="text"` + `inputmode="decimal"`**: el sitio
+  acepta coma o punto como separador decimal al publicar (RF-3) y
+  `type="number"` rechazaría la coma; el teclado numérico del celular ya
+  garantiza la comodidad de uso.
+- **La barra se re-puebla desde el array parseado, no desde `$_GET` crudo**:
+  el campo muestra el valor que realmente se aplicó (recortado a 80, sin
+  comodines, precio normalizado) y sólo pueden aparecer valores de lista
+  blanca; el texto se imprime siempre con `htmlspecialchars` (literal).
+- **Layout de vitrina en dos columnas (opción C, elegida por el usuario
+  tras rechazar la barra full-width)**: filtros en columna izquierda de
+  250 px con la card *sticky* y catálogo a la derecha con las tarjetas de a
+  dos por fila desde 1024 px; apilado en móvil. El ensanchado del `main` a
+  1400 px es sólo para la vitrina (`.site-main:has(.vitrina-layout)`), sin
+  tocar el layout del resto de las páginas. El catálogo crece por
+  breakpoints (2 filas ≥ 1024, 3 ≥ 1280, 4 ≥ 1560) como en la referencia
+  del usuario.
+- **Grupos de filtro con `<details>` nativos** (iteración 2, referencia del
+  usuario): plegables sin JavaScript y con `open` cuando el grupo trae una
+  opción activa, así la selección siempre es visible al recargar (RF-13).
+  El `<summary>` nombra la categoría y el label de adentro nombra el campo,
+  con palabras distintas para no duplicar texto visible.
+- **"Solo disponibles" como palanca sobre checkbox real**: el input mantiene
+  `name="status"` y `value="available"` (la URL y el parseo no cambian),
+  sólo su apariencia pasa a switch de CSS; el foco visible se traslada a la
+  palanca con `:focus-visible +`.
+- **Toolbar de la referencia fuera de alcance**: el orden "más nuevo" es el
+  único de la spec 02 (sin selector de orden) y el alternador grilla/lista
+  sería JS nuevo sin RF que lo respalde.
+
+## 2026-10-21 — Mantenimiento programado (fuera de specs)
+
+- **Los refactors van a `docs/maintenance.md` y se ejecutan después de la
+  spec 02** (decisión del usuario, 2026-10-21): la auditoría de estructura
+  detectó 4 mejoras de mantenimiento sin historia de usuario (partir
+  `bike_model.php`, extraer la lógica de fotos de `edit-bike.php`,
+  estándar de arranque de página y partir `style.css` en 5 archivos). No
+  son features, así que no entran en `specs/`; se registraron con sus
+  "hecho cuando" en el doc de mantenimiento y se harán de a una, con tests
+  primero y suite verde, recién al cerrar la spec 02.
+
 ## 2026-10-20 — Spec 02: búsqueda y filtros (decisiones del borrador)
 - **Alcance: solo búsqueda y filtros** (elegido por el usuario entre las
   opciones relevadas): la spec 02 cierra la promesa de AGENTS.md y lo que la

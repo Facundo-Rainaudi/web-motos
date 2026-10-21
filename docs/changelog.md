@@ -1,5 +1,61 @@
 # Changelog
 
+## 2026-10-21
+
+- **Spec 02, etapa 1: la vitrina ya busca y filtra** (tests primero). Nuevo
+  `views/filter_bar.php`: formulario GET a `/` con los seis campos del
+  contrato (buscar, condición, moneda, precio mín/máx y "solo disponibles"),
+  "Aplicar filtros" como submit normal (funciona sin JS) y "Limpiar filtros"
+  como link. `public/index.php` lee `$_GET` con `parse_feed_filters()`, pide
+  el listado filtrado y el contador, y renderiza: barra siempre visible,
+  contador "N motos encontradas" (sólo con selección activa), estado propio
+  de "sin resultados" con salida (priorizando el del RF-4 si el sitio está
+  vacío) y centinela del scroll sólo en el listado completo con más páginas.
+  Estilo en la sección 10 de `style.css` (grilla mobile-first reutilizando
+  `.card` y los campos existentes; primer checkbox del sitio con
+  `accent-color`), decisiones registradas en `docs/design.md`. Nuevos tests
+  `tests/Integration/VitrinaTest.php` (11 tests que incluyen `index.php` con
+  `$_GET` y revisan el HTML: contador y singular/plural, estados vacíos,
+  basura ignorada, valor de `q` escapado literal, re-poblado y centinela).
+  Recorrido con curl sobre la base de desarrollo en verde (checklist de casos
+  límite en `tasks.md`). Suite completa: 130 tests / 311 aserciones.
+  `php -l` limpio. Pendiente del usuario: vista visual a 375/1280 px.
+
+- **Rediseño del layout de la vitrina (feedback del usuario)**: la card de
+  filtros a todo el ancho arriba no gustó. Ahora, en ≥ 768 px, los filtros
+  van en una columna izquierda de 250 px con la card *sticky* (visible
+  mientras se hace scroll) y el catálogo a la derecha con las tarjetas de a
+  dos por fila desde 1024 px; en < 768 px sigue como antes (filtros arriba,
+  una columna de motos). El `main` de la vitrina se ensancha a 1040 px sólo
+  cuando tiene el layout nuevo (`.site-main:has(...)`) y la grilla interna
+  de la barra quedó acotada a 640-767 px. Nueva sección 11 de `style.css`,
+  `VitrinaTest` actualizado con la estructura, `docs/design.md` y
+  `docs/decisions.md` al día. Suite: 130 tests / 313 aserciones.
+
+- **Panel de filtros tipo mercado (iteración 2 del diseño, por feedback
+  del usuario con una referencia visual)**: `views/filter_bar.php` pasó de
+  barra a panel con título "Filtros", filas separadas por hairlines, grupos
+  Condición/Moneda/Precio plegables con `<details>` nativos (sin JS) que
+  nacen abiertos cuando traen la selección activa, y "Solo disponibles"
+  como palanca de CSS sobre un checkbox real (el foco de Teclado se dibuja
+  en la palanca). "Aplicar filtros" quedó como botón ancho completo al
+  fondo con "Limpiar filtros" debajo. El catálogo crece por breakpoints:
+  2 tarjetas por fila desde 1024 px, 3 desde 1280 px y 4 desde 1560 px, con
+  el `main` de la vitrina en 1400 px. Secciones 10 y 11 reescritas de
+  `style.css`; `VitrinaTest` ampliado (grupos abiertos con selección y
+  plegados sin ella). Suite: 130 tests / 315 aserciones. Recorrido curl en
+  verde (panel, grupos abiertos, contador, basura ignorada, XSS escapado).
+
+- **Nuevo `docs/maintenance.md` con la checklist de refactor diferido**
+  (pedido del usuario): tras auditar la estructura del proyecto se acordó
+  dejar por escrito 4 tareas de mantenimiento **sin historia de usuario**
+  (por eso no van en `specs/`): A) partir `bike_model.php` en feed vs.
+  dueño, B) extraer las 215 líneas de manejo de POST de `edit-bike.php` a
+  `src/` con tests primero, C) arranque de página estándar
+  (`page_start()`), y D) partir `style.css` (1.006 líneas) en 5 archivos CSS
+  sin build. Se ejecutan **después de cerrar la spec 02**, una por vez con
+  la política de la constitución.
+
 ## 2026-10-20
 - **Spec 02 aprobada y con plan técnico**: el usuario aprobó el borrador de
   `specs/02-search-filters/spec.md` y se generó `plan.md` (contrato de
