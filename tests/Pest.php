@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../src/db.php';
 require_once __DIR__ . '/../src/validation.php';
+// filters.php usa validate_price, por eso va después de validation.php.
+require_once __DIR__ . '/../src/filters.php';
 require_once __DIR__ . '/../src/format.php';
 require_once __DIR__ . '/../src/session.php';
 require_once __DIR__ . '/../src/csrf.php';
