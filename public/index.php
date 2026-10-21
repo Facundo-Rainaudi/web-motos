@@ -9,7 +9,9 @@ declare(strict_types=1);
 require __DIR__ . '/../src/bootstrap.php';
 session_start_secure();
 
-$bikes = list_bikes_feed(db_connect(), 20, null);
+// El listado de la vitrina: sin parámetros en la URL, el listado completo
+// del RF-4. Los filtros de búsqueda (spec 02) se conectan en la etapa 1.
+$bikes = list_bikes_feed(db_connect(), [], 20, null);
 $lastId = $bikes === [] ? null : (int) $bikes[count($bikes) - 1]['id'];
 
 $pageTitle = 'Bike Center — Motos en venta';

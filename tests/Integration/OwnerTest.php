@@ -71,7 +71,7 @@ describe('update_bike (RF-6)', function () {
         $ids = seed_feed_bikes($db, $ownerId, 3);
 
         $db->prepare("UPDATE bikes SET status = 'sold' WHERE id = :id")->execute(['id' => $ids[1]]);
-        $before = array_column(list_bikes_feed($db, 20, null), 'id');
+        $before = array_column(list_bikes_feed($db, [], 20, null), 'id');
         $createdAtBefore = $db->query('SELECT created_at FROM bikes WHERE id = ' . $ids[1])->fetchColumn();
 
         update_bike($db, $ids[1], [
@@ -86,7 +86,7 @@ describe('update_bike (RF-6)', function () {
         $row = $db->query('SELECT * FROM bikes WHERE id = ' . $ids[1])->fetch();
 
         // Los datos cambiaron, pero ni el orden del feed ni el estado.
-        expect(array_column(list_bikes_feed($db, 20, null), 'id'))->toBe($before)
+        expect(array_column(list_bikes_feed($db, [], 20, null), 'id'))->toBe($before)
             ->and($row['title'])->toBe('Título editado')
             ->and($row['currency'])->toBe('ARS')
             ->and($row['status'])->toBe('sold')
@@ -300,12 +300,12 @@ describe('toggle_bike_status_as_owner (RF-8, RF-10)', function () {
 
         $sold = toggle_bike_status_as_owner($db, $bikeId, $ownerId);
         expect($sold)->toBe(['ok' => true, 'status' => 'sold'])
-            ->and(list_bikes_feed($db, 20, null)[0]['status'])->toBe('sold');
+            ->and(list_bikes_feed($db, [], 20, null)[0]['status'])->toBe('sold');
 
         // La reversibilidad (RF-8): de vuelta a disponible, sin errores.
         $back = toggle_bike_status_as_owner($db, $bikeId, $ownerId);
         expect($back)->toBe(['ok' => true, 'status' => 'available'])
-            ->and(list_bikes_feed($db, 20, null)[0]['status'])->toBe('available');
+            ->and(list_bikes_feed($db, [], 20, null)[0]['status'])->toBe('available');
     });
 
     it('dos marcas seguidas vuelven a vender la moto sin error', function () {

@@ -49,6 +49,60 @@ function create_bike(PDO $pdo, int $userId, array $data, array $photos): int
 }
 
 /**
+ * WHERE común del feed filtrado (spec 02, RF-11 y RF-12): recibe los filtros
+ * ya normalizados por parse_feed_filters() y devuelve las condiciones y sus
+ * parámetros atados. Cada filtro se agrega solo si viene informado; con un
+ * arreglo vacío no se agrega nada y el listado queda igual que siempre
+ * (RF-4 intacto, verificado por los tests de FeedTest).
+ * El LIKE usa dos parámetros distintos porque PDO con prepares nativos no
+ * repite nombres; el texto ya viene sin comodines (filters.php) y todos los
+ * valores van atados, nunca concatenados (RNF-8).
+ *
+ * @return array{0: list<string>, 1: array<string, mixed>} [condiciones, params]
+ */
+function bikes_feed_where(array $filters): array
+{
+    $parts = [];
+    $params = [];
+
+    // Búsqueda por texto: coincide dentro del título O de la marca.
+    if (($filters['q'] ?? null) !== null) {
+        $parts[] = '(b.title LIKE :q_title OR b.brand LIKE :q_brand)';
+        $params['q_title'] = '%' . $filters['q'] . '%';
+        $params['q_brand'] = $params['q_title'];
+    }
+
+    if (($filters['condition'] ?? null) !== null) {
+        $parts[] = 'b.`condition` = :condition';
+        $params['condition'] = $filters['condition'];
+    }
+
+    if (($filters['currency'] ?? null) !== null) {
+        $parts[] = 'b.currency = :currency';
+        $params['currency'] = $filters['currency'];
+    }
+
+    if (($filters['min'] ?? null) !== null) {
+        $parts[] = 'b.price >= :price_min';
+        $params['price_min'] = $filters['min'];
+    }
+
+    if (($filters['max'] ?? null) !== null) {
+        $parts[] = 'b.price <= :price_max';
+        $params['price_max'] = $filters['max'];
+    }
+
+    // "Solo disponibles" (RF-12): predicado fijo de la base, sin dato de
+    // usuario que atar; sin este filtro se siguen mostrando las vendidas
+    // con su etiqueta (RF-4).
+    if (($filters['status'] ?? null) === 'available') {
+        $parts[] = "b.status = 'available'";
+    }
+
+    return [$parts, $params];
+}
+
+/**
  * Tanda del feed de la vitrina (RF-4, RNF-3): más reciente primero, con
  * orden `created_at DESC` y desempate por `id DESC`.
  *
@@ -56,8 +110,13 @@ function create_bike(PDO $pdo, int $userId, array $data, array $photos): int
  * id menor, así las publicadas mientras se recorre la lista no duplican ni
  * expulsan las ya vistas. $limit es un entero de código (nunca del usuario)
  * y se recorta a un rango razonable antes de pegarle al SQL.
+ *
+ * $filters (spec 02) acota el listado: con un arreglo vacío el SQL es el de
+ * siempre; con selección, se agregan las condiciones de bikes_feed_where()
+ * y el paginado por clave sigue funcionando igual dentro del resultado
+ * filtrado (RF-13).
  */
-function list_bikes_feed(PDO $pdo, int $limit = 20, ?int $beforeId = null): array
+function list_bikes_feed(PDO $pdo, array $filters = [], int $limit = 20, ?int $beforeId = null): array
 {
     $limit = max(1, min(50, $limit));
 
@@ -69,11 +128,16 @@ function list_bikes_feed(PDO $pdo, int $limit = 20, ?int $beforeId = null): arra
                     ORDER BY p.position
                     LIMIT 1) AS photo
             FROM bikes b';
-    $params = [];
+
+    [$whereParts, $params] = bikes_feed_where($filters);
 
     if ($beforeId !== null) {
-        $sql .= ' WHERE b.id < :before_id';
+        $whereParts[] = 'b.id < :before_id';
         $params['before_id'] = $beforeId;
+    }
+
+    if ($whereParts !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $whereParts);
     }
 
     $sql .= ' ORDER BY b.created_at DESC, b.id DESC LIMIT ' . $limit;
@@ -82,6 +146,27 @@ function list_bikes_feed(PDO $pdo, int $limit = 20, ?int $beforeId = null): arra
     $stmt->execute($params);
 
     return $stmt->fetchAll();
+}
+
+/**
+ * Cuántas motos cumplen la misma selección de la vitrina (spec 02, RF-13):
+ * el contador "N motos encontradas". Usa el MISMO WHERE que list_bikes_feed,
+ * así el número y el listado nunca pueden divergir.
+ */
+function count_bikes_matching(PDO $pdo, array $filters): int
+{
+    [$whereParts, $params] = bikes_feed_where($filters);
+
+    $sql = 'SELECT COUNT(*) FROM bikes b';
+
+    if ($whereParts !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $whereParts);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
 }
 
 /**

@@ -69,15 +69,15 @@ describe('list_bikes_feed (RF-4, RNF-3)', function () {
         $seeded = seed_feed_bikes($db, $userId, 45);
 
         // Tanda 1: las 20 más recientes.
-        $page1 = list_bikes_feed($db, 20, null);
+        $page1 = list_bikes_feed($db, [], 20, null);
         expect(count($page1))->toBe(20);
         $ids1 = array_column($page1, 'id');
 
         // Mientras se recorren, otro vendedor publica 5 motos nuevas.
         $newIds = seed_feed_bikes($db, $userId, 5, 500);
 
-        $page2 = list_bikes_feed($db, 20, $ids1[19]);
-        $page3 = list_bikes_feed($db, 20, (int) $page2[19]['id']);
+        $page2 = list_bikes_feed($db, [], 20, $ids1[19]);
+        $page3 = list_bikes_feed($db, [], 20, (int) $page2[19]['id']);
 
         $all = array_merge($ids1, array_column($page2, 'id'), array_column($page3, 'id'));
         $descending = $all;
@@ -97,13 +97,13 @@ describe('list_bikes_feed (RF-4, RNF-3)', function () {
         $userId = feed_owner_id();
         seed_feed_bikes($db, $userId, 25);
 
-        $before = array_column(list_bikes_feed($db, 20, null), 'id');
+        $before = array_column(list_bikes_feed($db, [], 20, null), 'id');
 
         // Simula la edición del futuro edit-bike: cambia datos, jamás created_at.
         $stmt = $db->prepare("UPDATE bikes SET title = 'Editada', price = 9999.99, `condition` = 'new' WHERE id = :id");
         $stmt->execute(['id' => $before[5]]);
 
-        $after = array_column(list_bikes_feed($db, 20, null), 'id');
+        $after = array_column(list_bikes_feed($db, [], 20, null), 'id');
 
         expect($after)->toBe($before);
     });
@@ -116,7 +116,7 @@ describe('list_bikes_feed (RF-4, RNF-3)', function () {
         $stmt->execute(['bike_id' => $bikeId, 'filename' => 'segunda.png', 'position' => 1]);
         $stmt->execute(['bike_id' => $bikeId, 'filename' => 'primera.jpg', 'position' => 0]);
 
-        $rows = list_bikes_feed($db, 20, null);
+        $rows = list_bikes_feed($db, [], 20, null);
 
         expect($rows[0]['photo'])->toBe('primera.jpg');
     });
@@ -126,7 +126,7 @@ describe('list_bikes_feed (RF-4, RNF-3)', function () {
         $db = test_db();
         seed_feed_bikes($db, feed_owner_id(), 1);
 
-        $rows = list_bikes_feed($db, 20, null);
+        $rows = list_bikes_feed($db, [], 20, null);
 
         expect($rows[0]['photo'])->toBeNull();
     });

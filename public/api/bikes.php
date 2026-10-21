@@ -17,7 +17,9 @@ $before = isset($_GET['before']) ? (int) $_GET['before'] : null;
 
 try {
     // Se pide una fila de más: si llega 21 es que aún queda listado.
-    $rows = list_bikes_feed(db_connect(), 21, $before);
+    // Los filtros de la selección activa se conectan en la etapa 2 (spec 02):
+    // por ahora la tanda sigue siendo el listado completo del RF-4.
+    $rows = list_bikes_feed(db_connect(), [], 21, $before);
     $hasMore = count($rows) > 20;
     $rows = array_slice($rows, 0, 20);
 

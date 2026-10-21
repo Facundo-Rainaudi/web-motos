@@ -38,6 +38,11 @@ CREATE TABLE bikes (
     PRIMARY KEY (id),
     KEY idx_bikes_created (created_at, id), -- feed ordenado por creación, con desempate por id
     KEY idx_bikes_user (user_id),           -- "Mis publicaciones" (RF-9)
+    -- Índices de los filtros de la vitrina (spec 02, RNF-9): aceleran el
+    -- filtrado por condición+moneda, el rango de precio y el "solo disponibles".
+    KEY idx_bikes_condition (`condition`, currency),
+    KEY idx_bikes_price (currency, price),
+    KEY idx_bikes_status (status),
     CONSTRAINT fk_bikes_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
